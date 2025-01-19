@@ -41,5 +41,5 @@ jobs:
       - name: Deploy Lambda function
         run: |
           aws lambda update-function-code \
-            --function-name lambdaProto \
+            --function-name lambdaProtoContainer \
             --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }}
