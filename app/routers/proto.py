@@ -92,23 +92,19 @@ async def seteuk_body(payload: BodyModel):
     proto = payload.proto
     case_result = payload.case_result
 
-    # proto가 JSON 문자열인지 확인 후 처리
-    if isinstance(payload.proto, str):
-        try:
-            proto = json.loads(payload.proto)  # 문자열을 JSON으로 변환
-        except json.JSONDecodeError as e:
-            return {"error": f"Invalid JSON format in 'proto': {str(e)}"}
-    elif isinstance(payload.proto, dict):
-        proto = payload.proto  # 이미 JSON 객체일 경우 그대로 사용
-    else:
-        return {"error": f"Unsupported type for 'proto': {type(payload.proto)}"}
+    # # proto가 JSON 문자열인지 확인 후 처리
+    # if isinstance(payload.proto, str):
+    #     try:
+    #         proto = json.loads(payload.proto)  # 문자열을 JSON으로 변환
+    #     except json.JSONDecodeError as e:
+    #         return {"error": f"Invalid JSON format in 'proto': {str(e)}"}
+    # elif isinstance(payload.proto, dict):
+    #     proto = payload.proto  # 이미 JSON 객체일 경우 그대로 사용
+    # else:
+    #     return {"error": f"Unsupported type for 'proto': {type(payload.proto)}"}
 
-
-    print('프로토 로그', proto)
-    print('프로토 타입', type(proto))
     proto1 = json.loads(payload.proto)
-    print('프로토 로그1', proto1)
-    print('프로토 타입2', type(proto1))
+
     tp_cs = seteukBasicBodyTop()
     topic_prompt = ChatPromptTemplate.from_messages(
         [
