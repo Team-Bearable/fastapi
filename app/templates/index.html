@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Test</title>
+    <script>
+        async function callAPI() {
+            const major = "example_major";
+            const keyword = "example_keyword";
+            const topic = "example_topic";
+
+            const response = await fetch("/seteukBasic/proto", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ major, keyword, topic }),
+            });
+
+            const result = await response.json();
+            document.getElementById("result").innerText = JSON.stringify(result, null, 2);
+        }
+    </script>
+</head>
+<body>
+    <h1>FastAPI Test</h1>
+    <button onclick="callAPI()">Call /seteukBasic/proto</button>
+    <pre id="result"></pre>
+</body>
+</html>

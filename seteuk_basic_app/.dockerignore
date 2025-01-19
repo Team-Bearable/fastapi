@@ -1,7 +1,0 @@
-__pycache__/
-.git/
-.env
-*.pyc
-*.pyo
-*.pyd
-*.zip
