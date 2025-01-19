@@ -14,7 +14,7 @@ jobs:
       # 1. GitHub 저장소 클론
       - name: Checkout code
         uses: actions/checkout@v3
-
+      # updated
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
