@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - main
+      - feat/*
 
 jobs:
   build-and-deploy:
@@ -14,6 +15,18 @@ jobs:
       # 1. GitHub 저장소 클론
       - name: Checkout code
         uses: actions/checkout@v3
+      # 2. Env 설정
+      - name: Determine environment
+        id: set-env
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "ENV=production" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
+            echo "ENV=development" >> $GITHUB_ENV
+          else
+            echo "ENV=local" >> $GITHUB_ENV
+          fi
+
       # updated
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -30,7 +43,7 @@ jobs:
       # 3. Docker 이미지 빌드
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
+          docker build -t --build-arg ENV=${{ env.ENV }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
 
       # 4. Docker 이미지 푸시
       - name: Push Docker image to ECR

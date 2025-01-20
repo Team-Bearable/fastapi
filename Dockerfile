@@ -7,6 +7,16 @@ WORKDIR /app
 COPY app ./app
 COPY requirements.txt .
 
+# 빌드 시 환경 변수 전달
+ARG ENV=development
+ENV ENV=${ENV}
+
+
+# 환경별 .env 파일 복사
+RUN if [ "$ENV" = "development" ]; then cp .env.development .env; \
+    elif [ "$ENV" = "production" ]; then cp .env.prod .env; \
+    else cp .env.local .env; fi
+
 # 의존성 설치
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
@@ -14,5 +24,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # 컨테이너 포트 노출
 EXPOSE 8000
 
-# FastAPI 서버 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# ENV에 따라 실행 명령 변경
+CMD if [ "$ENV" = "local" ]; then \
+        uvicorn app.main:app --host 0.0.0.0 --port 8000; \
+    else \
+        python -m awslambdaric app.main.handler; \
+    fi
