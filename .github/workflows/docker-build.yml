@@ -26,11 +26,11 @@ jobs:
             echo "ENVIRONMENT=local" >> $GITHUB_ENV
           fi
         shell: bash
-
+      # 2-2.  Env 설정 확인 로깅
       - name: Log Environment
         run: echo "Running in ${{ env.ENVIRONMENT }} environment"
 
-      # updated
+      # 3. AWS config
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -38,22 +38,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 2. AWS 로그인
+      # 4. AWS 로그인
       - name: Log in to AWS ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 3. Docker 이미지 빌드
+      # 5. Docker 이미지 빌드
       - name: Build Docker image
         run: |
           docker build --build-arg ENV=${{ env.ENVIRONMENT }} -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
 
-      # 4. Docker 이미지 푸시
+      # 6. Docker 이미지 푸시
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }}
 
-      # 5. Lambda 함수 업데이트
+      # 7. Lambda 함수 업데이트
       - name: Deploy Lambda function
         run: |
           aws lambda update-function-code \
