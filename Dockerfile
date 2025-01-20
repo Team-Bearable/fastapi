@@ -11,12 +11,6 @@ COPY requirements.txt .
 ARG ENV=development
 ENV ENV=${ENV}
 
-
-# 환경별 .env 파일 복사
-RUN if [ "$ENV" = "development" ]; then cp .env.development .env; \
-    elif [ "$ENV" = "production" ]; then cp .env.prod .env; \
-    else cp .env.local .env; fi
-
 # 의존성 설치
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
