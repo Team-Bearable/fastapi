@@ -9,7 +9,13 @@ COPY requirements.txt .
 
 # 빌드 시 환경 변수 전달
 ARG ENV=development
+ARG PERPLEXITY_API_KEY
+ARG ANTHROPIC_API_KEY
+
+# 환경 변수 설정
 ENV ENV=${ENV}
+ENV PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+ENV ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
 # 의존성 설치
 RUN pip install --no-cache-dir --upgrade pip \
