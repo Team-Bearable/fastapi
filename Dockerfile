@@ -8,9 +8,10 @@ COPY app ./app
 COPY requirements.txt .
 
 # 빌드 시 환경 변수 전달
-ARG ENV=development
+ARG ENV= local
 ARG PERPLEXITY_API_KEY
 ARG ANTHROPIC_API_KEY
+ARG OPENAI_API_KEY
 
 # 환경 변수 설정 진행
 ENV ENV=${ENV}
@@ -25,8 +26,11 @@ RUN pip install --no-cache-dir --upgrade pip \
 # 컨테이너 포트 노출
 EXPOSE 8000
 
+RUN echo " 여기 보슈" 
+
+
 # ENV에 따라 실행 명령 변경  
-CMD if [ "$ENV" = "LOCAL_ENV" ]; then \
+CMD if [ "$ENV" = local ]; then \
         uvicorn app.main:app --host 0.0.0.0 --port 8000; \
     else \
         python -m awslambdaric app.main.handler; \
