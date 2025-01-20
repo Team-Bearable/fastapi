@@ -15,19 +15,35 @@ jobs:
       # 1. GitHub 저장소 클론
       - name: Checkout code
         uses: actions/checkout@v3
-      # 2. Env 설정
-      - name: Determine environment
-        id: set-env
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "ENV=production" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
-            echo "ENV=development" >> $GITHUB_ENV
-          else
-            echo "ENV=local" >> $GITHUB_ENV
-          fi
 
-      # updated
+      # 2. Env 설정 (JSON에서 API_KEY 추출)
+      - name: Set Environment Variables
+        run: |
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
+            echo "ENVIRONMENT=development" >> $GITHUB_ENV
+            echo "${{ secrets.DEV_ENV }}" > env.json
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+            echo "${{ secrets.PROD_ENV }}" > env.json
+          else
+            echo "ENVIRONMENT=local" >> $GITHUB_ENV
+            echo "${{ secrets.LOCAL_ENV }}" > env.json
+
+          # JSON 파일에서 API 키 추출
+          PERPLEXITY_API_KEY=$(jq -r '.PERPLEXITY_API_KEY' env.json)
+          ANTHROPIC_API_KEY=$(jq -r '.ANTHROPIC_API_KEY' env.json)
+
+          echo "PERPLEXITY_API_KEY=$PERPLEXITY_API_KEY" >> $GITHUB_ENV
+          echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Log Environment
+        run: |
+          echo "Running in ${{ env.ENVIRONMENT }} environment"
+          echo "PERPLEXITY_API_KEY: ${{ env.PERPLEXITY_API_KEY }}"
+          echo "ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}"
+
+      # AWS 자격 증명 설정
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -35,22 +51,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 2. AWS 로그인
+      # AWS ECR 로그인
       - name: Log in to AWS ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 3. Docker 이미지 빌드
+      # Docker 이미지 빌드
       - name: Build Docker image
         run: |
-          docker build --build-arg ENV=${{ env.ENV }} -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
+          docker build \
+            --build-arg ENV=${{ env.ENVIRONMENT }} \
+            --build-arg PERPLEXITY_API_KEY=${{ env.PERPLEXITY_API_KEY }} \
+            --build-arg ANTHROPIC_API_KEY=${{ env.ANTHROPIC_API_KEY }} \
+            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
 
-      # 4. Docker 이미지 푸시
+      # Docker 이미지 푸시
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }}
 
-      # 5. Lambda 함수 업데이트
+      # Lambda 함수 업데이트
       - name: Deploy Lambda function
         run: |
           aws lambda update-function-code \
