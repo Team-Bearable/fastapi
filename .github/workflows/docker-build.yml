@@ -29,7 +29,6 @@ jobs:
             echo "${{ secrets.LOCAL_ENV }}" > env.json
           fi
 
-          # JSON 파일에서 API 키 추출
           PERPLEXITY_API_KEY=$(jq -r '.PERPLEXITY_API_KEY' env.json)
           ANTHROPIC_API_KEY=$(jq -r '.ANTHROPIC_API_KEY' env.json)
 
