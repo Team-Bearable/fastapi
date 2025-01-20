@@ -18,10 +18,10 @@ jobs:
       # 2. Env 설정
       - name: Set Environment Variables
         run: |
-          if [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
+          if [[ "${{ github.ref_name }}" == "dev" ]]; then
             echo "ENVIRONMENT=development" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.DEV_ENV }}" >> $GITHUB_ENV
-          elif [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "API_KEY=${{ secrets.PROD_ENV }}" >> $GITHUB_ENV
           else
