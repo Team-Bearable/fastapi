@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 EXPOSE 8000
 
 # ENV에 따라 실행 명령 변경
-CMD if [ "$ENV" = "local" ]; then \
+CMD if [ "$ENV" = "LOCAL_ENV" ]; then \
         uvicorn app.main:app --host 0.0.0.0 --port 8000; \
     else \
         python -m awslambdaric app.main.handler; \
