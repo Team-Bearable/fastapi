@@ -8,7 +8,7 @@ class seteukBasicProto:
   
   CONTENT FORMAT
   * Should be devided into 3 parts as 'introduction', 'body', 'conclusion'
-  * put the subtopic in '<>' and put the context after '\\n* ' and put the next subtopic in '<>' after '\\n\\n'
+  * put the subtopic in '<<<>>>' and put the context after '\\n* ' and put the next subtopic in '<<<>>>' after '\\n\\n'
   * example: <subtopic1>\\n* context1\\n* context2\\n\\n<subtopic2>\\n* context3\\n* context4. 
 
   Introduction Part
@@ -16,18 +16,18 @@ class seteukBasicProto:
   * Provide guideline to write the goal of research
   * Deliver the content through the sections of 주제 선정 동기, 보고서 목적. The two sections must be in the introductions sections
   * Details
-    - Motivation for Topic Selection<주제 선정 동기> -> Explain why this topic, linked with the '{keyword}', is beneficial for activities related to the '{major}', and specify how these activities can enhance certain skills and competencies necessary for the '{major}'.
-    - Purpose of Writing the Report<보고서 목적> -> Specifically describe how the content of the report will be used in connection with the motivation for topic selection described above.
+    - Motivation for Topic Selection<<<주제 선정 동기>>> -> Explain why this topic, linked with the '{keyword}', is beneficial for activities related to the '{major}', and specify how these activities can enhance certain skills and competencies necessary for the '{major}'.
+    - Purpose of Writing the Report<<<보고서 목적>>> -> Specifically describe how the content of the report will be used in connection with the motivation for topic selection described above.
 
   
   Body Part
   * Provide detailed contents of introduction's guidance
   * Provide guidance for conducting research or analysis activities related to fundamental theoretical knowledge concerning the topic.
   * Create guidelines for investigating the market, industry practices, or current industry status related to the topic's impact assessment.
-  * Notice: Instead of merely structuring the information as main activities include the keywords discussed within the content. For example, instead of labeling a section as 'main activities,' use specific keywords from the activities like '<Experiment on ~~>', '<Activity on ~~>', and provide explanations for each activity under these headings.
+  * Notice: Instead of merely structuring the information as main activities include the keywords discussed within the content. For example, instead of labeling a section as 'main activities,' use specific keywords from the activities like '<<<Experiment on ~~>>>', '<<<Activity on ~~>>>', and provide explanations for each activity under these headings.
   * Details
-    - Concept Exploration<개념 탐구> -> Explain the key theoretical concepts discussed in the topic using bullet points. And provide detailed learning information about the key theoretical concepts discussed in the introduction.
-    - Main Activities<주요 활동> -> Provide a detailed, step-by-step description of the activity or experiment. it depends on 
+    - Concept Exploration<<<개념 탐구>>> -> Explain the key theoretical concepts discussed in the topic using bullet points. And provide detailed learning information about the key theoretical concepts discussed in the introduction.
+    - Main Activities<<<주요 활동>>> -> Provide a detailed, step-by-step description of the activity or experiment. it depends on 
     - If the activity includes an experiment, additional part is needed. please write the experimental procedure in detail. If you are unsure, do not include it.
     - For experiments, replace them with high school level experiments. For example, if conducting an experiment related to petroleum, use easily obtainable household substitutes instead of actual petroleum.
     - If finding a substitute for the experiment is also difficult, include theoretical content that can be studied.
@@ -37,9 +37,9 @@ class seteukBasicProto:
   * Provide guidelines on how to effectively structure and present overall research findings.
   * Supply guidance on suggesting future research directions to users.
   * Details
-    - Summary of Activity/Research Results<활동/연구 요약> -> Summarize the results of the activity/research based on the content organized above. Ensure to include a detailed conclusion about what was learned through specific content.
-    - Confirmation of the Need for Further Research<추후 연구 계획> -> Reaffirm what additional aspects could be explored in-depth in this research and how it could solve societal/industrial problems. Describe in detail how additional activities or research could be conducted, and mention the keywords or terms related to the further research that should be studied.
-    - Future Prospects<미래 전망> -> Describe which aspects could be developed in future society through this research. Explain 'what' results came from this research and 'why' these results occurred.
+    - Summary of Activity/Research Results<<<활동/연구 요약>>> -> Summarize the results of the activity/research based on the content organized above. Ensure to include a detailed conclusion about what was learned through specific content.
+    - Confirmation of the Need for Further Research<<<추후 연구 계획>>> -> Reaffirm what additional aspects could be explored in-depth in this research and how it could solve societal/industrial problems. Describe in detail how additional activities or research could be conducted, and mention the keywords or terms related to the further research that should be studied.
+    - Future Prospects<<<미래 전망>>> -> Describe which aspects could be developed in future society through this research. Explain 'what' results came from this research and 'why' these results occurred.
 
   OUTPUT FORMAT
   * Output content must be in korean
@@ -48,17 +48,47 @@ class seteukBasicProto:
   * The json key values are 'introduction','body','conclusion' only. Do not generate any other json keys except for the 3 keys(introduction, body, conclusion).
   * OUTPUT EXAMPLE:
     When generating JSON format, ensure that it does not become nested JSON. For example, the keys should only be 'introduction', 'body', and 'conclusion', with all other content as string values, like this:
-    {{"introduction": "contexts",
+    '{{"introduction": "contexts",
        "body": "contexts",
-       "conclusion": "contexts"}}"""
-  human= r"""
-  major: {major}
-  keyword: {topic}
+       "conclusion": "contexts"}}'
   
-  AI:"""
+  CONTEXT:
+  keyword: 다항식
+  major: 생명공학
+  topic: 다항식 모델을 활용한 유전자 발현 패턴 분석: 특정 질병과 관련된 유전자 발현 데이터를 수집하고 다항식 회귀 모델을 적용하여 발현 패턴을 예측하는 연구
+
+  OUTPUT:
+  '{{"introduction": "<<<주제 선정 동기>>>\\n* 생명공학과 수학의 융합 연구에 대한 관심 증가\\n* 유전자 발현 패턴 분석의 중요성 인식\\n* 다항식 모델을 통한 데이터 분석 능력 향상 기대\\n* 질병 관련 유전자 연구의 사회적 중요성 인식\\n\\n<<<보고서 목적>>>\\n* 다항식 모델을 이용한 유전자 발현 패턴 분석 방법 학습\\n* 생물학적 데이터에 대한 수학적 모델 적용 능력 개발\\n* 특정 질병과 관련된 유전자 발현 데이터 분석 경험 축적\\n* 생명공학 분야에서의 데이터 과학 응용 가능성 탐구","body": "<<<유전자 발현과 다항식 모델 개념>>>\\n* 유전자 발현: DNA에서 RNA를 거쳐 단백질이 만들어지는 과정\\n* 다항식 모델: 변수의 거듭제곱의 합으로 이루어진 수학적 모델\\n* 회귀 분석: 변수 간의 관계를 분석하는 통계적 방법\\n\\n<<<유전자 발현 데이터 수집 활동>>>\\n* 공개된 유전자 발현 데이터베이스 탐색 (예: GEO, ArrayExpress)\\n* 특정 질병 관련 유전자 발현 데이터셋 선택\\n* 데이터 전처리: 결측치 처리, 정규화 등\\n\\n<<<다항식 회귀 모델 구현 활동>>>\\n* Python을 이용한 간단한 다항식 회귀 모델 구현\\n* 모델 학습을 위한 데이터 분할 (훈련 세트, 검증 세트)\\n* 다항식의 차수 결정 및 모델 학습\\n\\n<<<모델 평가 및 결과 분석>>>\\n* 평가 지표 선정 (예: R-squared, MSE)\\n* 학습된 모델을 이용한 유전자 발현 패턴 예측\\n* 예측 결과와 실제 데이터 비교 분석\\n\\n<<<대체 실험: 식물 성장 패턴 분석>>>\\n* 재료: 콩나물 씨앗, 화분, 흙, 자, 기록장\\n* 방법:\\n  1. 여러 화분에 콩나물 씨앗 심기\\n  2. 매일 일정 시간에 콩나물 길이 측정 및 기록 (2주간)\\n  3. 측정 데이터를 이용해 Excel에서 다항식 회귀 모델 생성\\n  4. 모델을 통해 향후 성장 패턴 예측\\n* 분석: 실제 성장과 예측 모델 비교, 오차 원인 분석","conclusion": "<<<활동/연구 요약>>>\\n* 유전자 발현 데이터와 다항식 모델의 연관성 이해\\n* 데이터 수집, 전처리, 모델링, 평가의 전체 과정 경험\\n* 생물학적 현상에 대한 수학적 접근 방법 학습\\n* 대체 실험을 통한 실제 데이터 수집 및 분석 경험\\n\\n<<<추후 연구 계획>>>\\n* 더 복잡한 비선형 모델(예: 스플라인 회귀) 적용 연구\\n* 시계열 분석을 통한 유전자 발현의 시간적 변화 연구\\n* 머신러닝 알고리즘을 활용한 질병 예측 모델 개발\\n* 주요 키워드: 비선형 회귀, 시계열 분석, 머신러닝, 질병 예측\\n\\n<<<미래 전망>>>\\n* 정밀 의료 분야에서의 활용 가능성 증대\\n* 신약 개발 과정에서 유전자 타겟 발굴에 기여\\n* 빅데이터와 AI 기술의 융합으로 더욱 정확한 질병 예측 가능\\n* 개인 맞춤형 치료법 개발을 위한 기초 연구로 발전 기대"}}'
+
+  CONTEXT:
+  keyword: 통계적 추정
+  major: 경영학
+  topic: 통계적 추정을 활용한 마케팅 전략 수립: 소비자 행동 데이터를 분석하여 효과적인 광고 캠페인 설계하기
+
+  OUTPUT:
+  '{{"introduction": "<<<주제 선정 동기>>>\\n* 통계적 추정을 활용한 마케팅 전략 수립은 경영학 분야에서 매우 중요한 주제입니다. 이 주제를 선택한 이유는 다음과 같습니다:\\n* 첫째, 데이터 기반 의사결정의 중요성이 증가하고 있는 현대 비즈니스 환경에서 통계적 추정 능력은 필수적입니다.\\n* 둘째, 소비자 행동 데이터 분석을 통해 효과적인 마케팅 전략을 수립하는 것은 기업의 성공에 직접적인 영향을 미칩니다.\\n* 셋째, 이 주제를 탐구함으로써 데이터 분석, 통계적 사고, 마케팅 전략 수립 등 경영학에 필요한 핵심 역량을 강화할 수 있습니다.\\n\\n<<<보고서 목적>>>\\n* 이 보고서의 주요 목적은 다음과 같습니다:\\n* 통계적 추정의 개념과 방법론을 이해하고 실제 마케팅 상황에 적용하는 능력을 개발합니다.\\n* 소비자 행동 데이터를 수집, 분석하고 이를 바탕으로 효과적인 광고 캠페인을 설계하는 과정을 학습합니다.\\n* 데이터 기반의 마케팅 의사결정 과정을 체험하고, 이를 통해 경영학적 사고력을 향상시킵니다.\\n* 최종적으로, 통계와 마케팅의 융합이 어떻게 기업의 성과를 향상시킬 수 있는지 이해하고자 합니다.","body": "<<<통계적 추정의 개념>>>\\n* 통계적 추정이란 표본 데이터를 바탕으로 모집단의 특성을 추론하는 과정입니다.\\n* 점추정과 구간추정의 두 가지 주요 방법이 있으며, 이를 통해 모수의 값이나 범위를 추정합니다.\\n* 마케팅 분야에서는 소비자 선호도, 구매 의도, 광고 효과 등을 추정하는 데 활용됩니다.\\n\\n<<<소비자 행동 데이터 수집 및 분석>>>\\n* 온라인 설문조사를 통해 목표 고객층의 구매 행동, 선호도, 인구통계학적 정보를 수집합니다.\\n* 수집된 데이터를 Excel이나 SPSS 등의 툴을 사용하여 기술통계 분석을 실시합니다.\\n* 회귀분석, 분산분석 등의 통계적 기법을 적용하여 변수 간의 관계를 파악합니다.\\n\\n<<<가설 설정 및 검정>>>\\n* 광고 캠페인의 효과에 대한 가설을 설정합니다. 예: "새로운 광고 캠페인은 기존 캠페인보다 구매 의도를 10% 이상 증가시킬 것이다."\\n* t-검정이나 카이제곱 검정 등을 활용하여 가설을 검증합니다.\\n* 검정 결과를 바탕으로 광고 캠페인의 효과성을 평가합니다.\\n\\n<<<광고 캠페인 설계>>>\\n* 분석 결과를 바탕으로 목표 고객층의 특성과 선호도를 파악합니다.\\n* 효과적인 메시지, 채널, 타이밍을 결정하여 광고 캠페인을 설계합니다.\\n* A/B 테스팅을 통해 여러 버전의 광고를 비교하고 최적의 전략을 선택합니다.\\n\\n<<<ROI 분석>>>\\n* 광고 캠페인의 비용과 예상 수익을 추정하여 투자수익률(ROI)을 계산합니다.\\n* 민감도 분석을 통해 다양한 시나리오에서의 ROI를 예측합니다.", "conclusion": "<<<활동/연구 요약>>>\\n* 이번 연구를 통해 통계적 추정 방법을 실제 마케팅 전략 수립에 적용하는 과정을 학습했습니다.\\n* 소비자 행동 데이터를 수집하고 분석하여 유의미한 인사이트를 도출하는 능력을 개발했습니다.\\n* 데이터 기반의 의사결정이 어떻게 효과적인 광고 캠페인 설계로 이어지는지 이해했습니다.\\n* 통계와 마케팅의 융합이 기업의 성과 향상에 미치는 영향을 확인했습니다.\\n\\n<<<추후 연구 계획>>>\\n* 향후 연구에서는 다음과 같은 주제를 더 깊이 탐구할 수 있습니다:\\n* 머신러닝과 인공지능을 활용한 고급 예측 모델링 기법 연구\\n* 실시간 데이터 분석을 통한 동적 마케팅 전략 수립 방안\\n* 다채널 마케팅 효과의 통합적 분석 방법론 개발\\n* 이를 위해 빅데이터 분석, 머신러닝 알고리즘, 마케팅 자동화 등의 키워드에 대한 추가 학습이 필요합니다.\\n\\n<<<미래 전망>>>\\n* 데이터 기반의 마케팅 의사결정은 앞으로 더욱 중요해질 것으로 예상됩니다.\\n* 이번 연구를 통해 얻은 통계적 추정과 마케팅 전략 수립 능력은 향후 개인화된 마케팅, 실시간 고객 응대, 예측적 분석 등의 분야에서 크게 활용될 것입니다.\\n* 또한, 이러한 능력은 단순히 마케팅 분야뿐만 아니라 경영 전반의 데이터 기반 의사결정에도 적용될 수 있어, 미래 비즈니스 환경에서 핵심 경쟁력이 될 것입니다."}}'
+
+  CONTEXT:
+  keyword: 판 구조론
+  major: 경영학
+  topic: 판 구조론을 활용한 기업 조직 구조 분석: 대기업과 중소기업의 조직도를 비교하고 효율성 평가
+  
+  OUTPUT:
+  '{{"introduction": "<<<주제 선정 동기>>>\\n* 경영학에서 기업 조직 구조의 중요성 인식\\n* 판 구조론을 경영학에 적용하는 새로운 시도에 대한 관심\\n* 대기업과 중소기업의 조직 구조 차이에 대한 궁금증\\n* 조직 효율성 평가 능력 향상 기대\\n* 경영 컨설팅 분야에서의 활용 가능성 탐구\\n\\n<<<보고서 목적>>>\\n* 판 구조론의 개념을 기업 조직 구조 분석에 적용하는 방법 학습\\n* 대기업과 중소기업의 조직도를 비교 분석하는 능력 개발\\n* 조직 구조의 효율성을 평가하는 기준과 방법 탐구\\n* 기업 규모에 따른 최적의 조직 구조 제안 능력 함양\\n* 경영학적 관점에서 조직 이론을 실제 기업 사례에 적용하는 경험 축적","body": "<<<판 구조론의 개념과 조직 구조 분석 적용>>>\\n* 판 구조론: 지구과학에서 지각의 움직임을 설명하는 이론\\n* 조직 구조에의 적용: 기업 부서를 \'판\'으로, 조직 변화를 \'판의 이동\'으로 비유\\n* 조직 내 부서 간 관계와 상호작용을 판 구조론의 관점에서 해석\\n\\n<<<대기업과 중소기업 조직도 수집 및 비교 활동>>>\\n* 공개된 기업 정보를 활용하여 대기업과 중소기업의 조직도 수집\\n* 조직도 시각화 도구(예: Draw.io, Microsoft Visio) 활용\\n* 계층 구조, 부서 분화, 의사결정 라인 등을 기준으로 비교 분석\\n\\n<<<조직 구조 효율성 평가 기준 설정>>>\\n* 의사결정 속도, 정보 흐름, 혁신 능력, 비용 효율성 등 평가 지표 선정\\n* 각 지표별 점수 체계 개발 (예: 5점 척도)\\n* 전문가 인터뷰를 통한 평가 기준의 타당성 검증\\n\\n<<<판 구조론 기반 조직 효율성 분석>>>\\n* 각 기업의 조직 구조를 \'판\'으로 시각화\\n* \'판\'의 크기, 위치, 상호작용을 분석하여 효율성 평가\\n* 대기업과 중소기업의 \'판 구조\' 차이점 도출\\n\\n<<<가상 기업 조직 재설계 활동>>>\\n* 분석 결과를 바탕으로 가상의 중견기업 조직 구조 설계\\n* 판 구조론을 적용한 새로운 조직도 제안\\n* 제안된 조직 구조의 장단점 분석 및 효율성 예측","conclusion": "<<<활동/연구 요약>>>\\n* 판 구조론을 기업 조직 구조 분석에 적용하는 새로운 방법론 개발\\n* 대기업과 중소기업의 조직 구조 차이점 및 각각의 특징 파악\\n* 조직 구조 효율성 평가를 위한 객관적 기준 수립\\n* 판 구조론 기반의 조직 분석이 제공하는 새로운 인사이트 도출\\n\\n<<<추후 연구 계획>>>\\n* 더 많은 기업 사례 분석을 통한 연구 결과의 일반화\\n* 조직 문화와 판 구조론의 연관성 탐구\\n* 산업별 최적 조직 구조 모델 개발 연구\\n* 조직 변화 관리에 판 구조론 적용 방안 연구\\n* 주요 키워드: 조직 동역학, 네트워크 이론, 변화 관리, 조직 유연성\\n\\n<<<미래 전망>>>\\n* 판 구조론을 활용한 조직 분석이 경영 컨설팅 분야에 새로운 패러다임 제시\\n* 기업의 규모와 특성에 맞는 최적화된 조직 구조 설계에 기여\\n* 급변하는 비즈니스 환경에 대응할 수 있는 유연한 조직 구조 모델 개발 가능\\n* 인공지능과 빅데이터를 활용한 실시간 조직 구조 최적화 시스템 개발 전망"}}'
+  
+  """
+  human= r"""
+
+  CONTEXT:
+  keyword: {keyword}
+  major: {major}
+  topic: {topic}
+  
+  OUTPUT:"""
 
 class seteukBasicBodyTop:
   system = r"""
+  GOAL:
   * You are a bot that supplements the body of the essay.
   * You have to check the 'prototype' and 'essay topic' to know
   * Review the sections of the existing essay body and supplement any missing parts to make it more detailed.
@@ -73,13 +103,13 @@ class seteukBasicBodyTop:
   * Provide detailed procedures for conducting the research methods and elaborating on the research content outlined in the given body.
 
   Output Format
-  * Keep the same format as the original, without using markdown or any other formatting. including the '<>' marks and bullet points.
+  * Keep the same format as the original, without using markdown or any other formatting. including the '<<<>>>' marks and bullet points.
   * Clearly separate each paragraph for readability."""
   human= r"""
   topic: {topic}
   proto: {proto}
 
-  AI:"""
+  OUTPUT:"""
 
 
 
@@ -219,17 +249,21 @@ class material_organizer:
     """
 
 
-class perplexity_prompt:
-    system = r"""
-        * You are an assistant that specializes in finding real-world case studies to help high school students explore various career paths.
-        * Given a specific topic, please identify and share concrete, real-life examples that can guide and inspire the student in their career discovery.
-        * Please describe cases led by actual government agencies, companies, organizations, or individuals.
-        * These cases can be either research-focused or otherwise related to the topic at hand, including any examples of issues that have arisen or been resolved in relation to that topic.
-        """
-    user = r"""
-        Provide information on real-world applications, researched cases, or prior studies related to {topic}. 
-        Clearly specify which institution conducted the study or research and mention who was responsible for the research or patent.
-        Identify and describe exactly what actions were taken in the research or activity and analyze the potential impacts it could have.
-        For patents, specify the individual who filed the patent or mention the institution responsible for the application.
-        Make the answers in Korean.
-        """
+class perplexity_prompt():
+    def __init__(self, topic):
+        self.system = r"""
+            * You are an assistant that specializes in finding real-world case studies to help high school students explore various career paths.
+            * Given a specific topic, please identify and share concrete, real-life examples that can guide and inspire the student in their career discovery.
+            * Please describe cases led by actual government agencies, companies, organizations, or individuals.
+            * These cases can be either research-focused or otherwise related to the topic at hand, including any examples of issues that have arisen or been resolved in relation to that topic.
+            """
+        self.user = f"""
+            Provide information on real-world applications, researched cases, or prior studies related to {topic}. 
+            Clearly specify which institution conducted the study or research and mention who was responsible for the research or patent.
+            Identify and describe exactly what actions were taken in the research or activity and analyze the potential impacts it could have.
+            For patents, specify the individual who filed the patent or mention the institution responsible for the application.
+            Make the answers in Korean.
+
+            TOPIC:
+            {topic}
+            """
