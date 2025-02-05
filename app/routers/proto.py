@@ -92,18 +92,7 @@ async def seteuk_body(payload: BodyModel):
     proto = payload.proto
     case_result = payload.case_result
 
-    # # proto가 JSON 문자열인지 확인 후 처리
-    # if isinstance(payload.proto, str):
-    #     try:
-    #         proto = json.loads(payload.proto)  # 문자열을 JSON으로 변환
-    #     except json.JSONDecodeError as e:
-    #         return {"error": f"Invalid JSON format in 'proto': {str(e)}"}
-    # elif isinstance(payload.proto, dict):
-    #     proto = payload.proto  # 이미 JSON 객체일 경우 그대로 사용
-    # else:
-    #     return {"error": f"Unsupported type for 'proto': {type(payload.proto)}"}
-
-    proto1 = json.loads(payload.proto)
+    proto = json.loads(proto)
 
     tp_cs = seteukBasicBodyTop()
     topic_prompt = ChatPromptTemplate.from_messages(
@@ -115,11 +104,11 @@ async def seteuk_body(payload: BodyModel):
     chain_gpt  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough()}|topic_prompt | anthropic | StrOutputParser()
     result_gpt = None
     try:
-        result_gpt = chain_gpt.invoke({'topic':topic, 'proto':proto1['body']})
+        result_gpt = chain_gpt.invoke({'topic':topic, 'proto':proto['body']})
     except Exception as e:
         print('body 오류:', e)
     
-    answer = [proto1['introduction'], result_gpt +'\n\n\n'+ case_result , proto1['conclusion']]
+    answer = [proto['introduction'], result_gpt +'\n\n\n'+ case_result , proto['conclusion']]
     return {'response': answer}
 
 @router.post("/perplexity")
@@ -130,7 +119,7 @@ async def perplexity(payload: RequestModel):
     keyword = payload.keyword
     topic = payload.topic
     
-    prompt = perplexity_prompt()
+    prompt = perplexity_prompt(topic)
     perple_messages = [
         {"role": "system",
          "content": (prompt.system)},
