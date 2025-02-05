@@ -3,8 +3,8 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - dev
       - main
+      - dev
       - feat/*
 
 jobs:
@@ -12,39 +12,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. GitHub 저장소 클론
+      # 1. GitHub 저장소 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
-      # 2. Env 설정
+
+      # 2. 환경변수 설정: 브랜치에 따라 ENV와 이미지 태그, API 키들을 설정
       - name: Set Environment Variables
         run: |
           if [[ "${{ github.ref_name }}" == "dev" ]]; then
             echo "ENVIRONMENT=development" >> $GITHUB_ENV
+            echo "DOCKER_TAG=dev-${{ github.sha }}" >> $GITHUB_ENV
             echo "ANTHROPIC_API_KEY=${{ secrets.DEV_ENV_ANTHROPIC }}" >> $GITHUB_ENV
             echo "PERPLEXITY_API_KEY=${{ secrets.DEV_ENV_PERPLEXITY }}" >> $GITHUB_ENV
             echo "OPENAI_API_KEY=${{ secrets.DEV_ENV_OPENAI }}" >> $GITHUB_ENV
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
+            echo "DOCKER_TAG=prod-${{ github.sha }}" >> $GITHUB_ENV
             echo "ANTHROPIC_API_KEY=${{ secrets.PROD_ENV_ANTHROPIC }}" >> $GITHUB_ENV
             echo "PERPLEXITY_API_KEY=${{ secrets.PROD_ENV_PERPLEXITY }}" >> $GITHUB_ENV
             echo "OPENAI_API_KEY=${{ secrets.PROD_ENV_OPENAI }}" >> $GITHUB_ENV
           else
             echo "ENVIRONMENT=local" >> $GITHUB_ENV
+            echo "DOCKER_TAG=local-${{ github.sha }}" >> $GITHUB_ENV
             echo "ANTHROPIC_API_KEY=${{ secrets.LOCAL_ENV_ANTHROPIC }}" >> $GITHUB_ENV
             echo "PERPLEXITY_API_KEY=${{ secrets.LOCAL_ENV_PERPLEXITY }}" >> $GITHUB_ENV
             echo "OPENAI_API_KEY=${{ secrets.LOCAL_ENV_OPENAI }}" >> $GITHUB_ENV
           fi
         shell: bash
 
-      # 2-2. Env 설정 확인 로깅
+      # 2-2. 환경설정 확인 로그 출력
       - name: Log Environment
         run: |
           echo "Running in ${{ env.ENVIRONMENT }} environment"
+          echo "Using Docker tag: ${{ env.DOCKER_TAG }}"
           echo "Anthropic API Key: ${{ env.ANTHROPIC_API_KEY }}"
           echo "Perplexity API Key: ${{ env.PERPLEXITY_API_KEY }}"
           echo "OPENAI API Key: ${{ env.OPENAI_API_KEY }}"
 
-      # 3. AWS config
+      # 3. AWS 자격 증명 구성
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -52,12 +57,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 4. AWS 로그인
+      # 4. AWS ECR 로그인
       - name: Log in to AWS ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 5. Docker 이미지 빌드
+      # 5. Docker 이미지 빌드 (빌드 인자에 환경변수 전달)
       - name: Build Docker image
         run: |
           docker build \
@@ -65,16 +70,25 @@ jobs:
             --build-arg PERPLEXITY_API_KEY=${{ env.PERPLEXITY_API_KEY }} \
             --build-arg ANTHROPIC_API_KEY=${{ env.ANTHROPIC_API_KEY }} \
             --build-arg OPENAI_API_KEY=${{ env.OPENAI_API_KEY }} \
-            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }} .
+            -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }} .
 
-      # 6. Docker 이미지 푸시
+      # 6. Docker 이미지 ECR에 푸시
       - name: Push Docker image to ECR
         run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }}
 
-      # 7. Lambda 함수 업데이트
-      - name: Deploy Lambda function
+      # 7. Lambda 업데이트: main 브랜치인 경우 production Lambda 업데이트
+      - name: Deploy Production Lambda Function
+        if: ${{ github.ref_name == 'main' }}
         run: |
           aws lambda update-function-code \
-            --function-name lambdaProtoContainer \
-            --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ github.sha }}
+            --function-name lambdaProtoContainerProd \
+            --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }}
+
+      # 8. Lambda 업데이트: dev 브랜치인 경우 development Lambda 업데이트
+      - name: Deploy Development Lambda Function
+        if: ${{ github.ref_name == 'dev' }}
+        run: |
+          aws lambda update-function-code \
+            --function-name lambdaProtoContainerDev \
+            --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }}
