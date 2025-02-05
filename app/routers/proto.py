@@ -78,10 +78,13 @@ async def seteukProto(payload: RequestModel):
     json_result = None
     try:
         json_result = process_result(result)
+        json_result = json.loads(json_result)
+        # print('제이슨결과:', type(json.loads(json_result)), json.loads(json_result))
     except Exception as final_e:
         print("Final proto parsing error:", final_e)
         print("proto 값:", result)
         # return {"error": f"Failed to process proto value: {str(final_e)}"}
+
 
     return {"response": json_result}
         
