@@ -27,6 +27,34 @@ router = APIRouter(
     prefix="/seteukBasic"
 )
 
+def parse_json_response(response, is_perple=False):
+    """
+    JSON 문자열을 파싱하여 딕셔너리로 변환
+    - is_perple=True: `perple_json_format` 동작 (특수 문자열 처리 및 `ast.literal_eval`)
+    - is_perple=False: 기본 JSON 변환 (`json.loads`)
+    """
+    # Perplexity 모델을 사용할 경우
+    if is_perple:
+        try:
+            response = response.replace("json", '').replace("```", '').strip()
+            return ast.literal_eval(response)
+        except Exception as e:
+            try:
+                return ast.literal_eval(response[:-1])  # 마지막 문자 제거 후 재시도
+            except Exception as inner_e:
+                raise ValueError(f"기존 오류: {e}, 재시도 오류: {inner_e}")
+
+    # 일반 JSON 처리
+    start, end = response.find("{"), response.rfind("}")
+    if start != -1 and end != -1 and start < end:
+        candidate = escape_control_characters(response[start:end+1])
+        try:
+            return json.loads(candidate)
+        except Exception as e:
+            print(f"JSON 파싱 실패: {e}\n원본:\n{candidate}")
+    
+    raise ValueError(f"JSON 변환 실패. 원본 데이터:\n{response}")
+
 def json_format(response):
     start = response.find("{")
     end = response.rfind("}")
@@ -53,10 +81,7 @@ def escape_control_characters(s: str) -> str:
     s = s.replace("\r", "\\r")
     s = s.replace("\t", "\\t")
     return s
-    # response = response.replace("json", '')
-    # response = response.replace("```", '').strip()
-    # response = ast.literal_eval(response)
-    # return response
+
 
 def process_result(result):
     """
@@ -64,13 +89,27 @@ def process_result(result):
     """
     # try:
     return json_format(result)
-    # except Exception as e:
-        
-        # try:
-        #     result = result[:-1]
-        #     return json_format(result)
-        # except Exception as inner_e:
-        #     raise ValueError(f"기존 오류: {e}, 재시도 오류: {inner_e}")
+
+
+def perple_json_format(response):
+    response = response.replace("json", '')
+    response = response.replace("```", '').strip()
+    response = ast.literal_eval(response)
+    return response
+
+def perple_process_result(result):
+    """
+    에러 대비 JSON 처리 로직
+    """
+    try:
+        return perple_json_format(result)
+    except Exception as e:
+        try:
+            result = result[:-1]
+            return perple_json_format(result)
+        except Exception as inner_e:
+            raise ValueError(f"기존 오류: {e}, 재시도 오류: {inner_e}")
+
 
 
 def llm_material_organizer(major, topic, context, model):
@@ -167,7 +206,7 @@ async def perplexity(payload: RequestModel):
     while True:
         try:
             case = llm_material_organizer(major, topic, case_result, gpt4o)    
-            json_case = json_format(case)
+            json_case = perple_process_result(case)
             break
         except Exception as e:
             print('perple json 오류:', e)
