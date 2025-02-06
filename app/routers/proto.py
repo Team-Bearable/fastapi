@@ -247,7 +247,7 @@ async def perplexity(payload: RequestModel):
     * 관련 자료: {[citations[ii-1] for ii in eval(i['src'])]}
     """
             reference_news.append({'title': i['topic'],
-                                   'institute': None,
+                                   'institute': '응용탐구',
                                    'url': [citations[ii-1] for ii in eval(i['src'])][0],
                                    'date':None})
     else:
