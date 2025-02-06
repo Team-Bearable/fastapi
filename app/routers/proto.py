@@ -176,7 +176,7 @@ async def seteuk_body(payload: BodyModel):
     except Exception as e:
         print('body 오류:', e)
     
-    answer = [proto['introduction'], result_gpt +'\n\n\n'+ case_result , proto['conclusion']]
+    answer = [proto['introduction'], result_gpt +'\n'+ case_result , proto['conclusion']]
     return {'response': answer}
 
 @router.post("/perplexity")
@@ -214,7 +214,7 @@ async def perplexity(payload: RequestModel):
     case_study = list(filter(lambda x: x['host']!='no', json_case))
     applied_study = list(filter(lambda x: x['host']=='no', json_case))
     reference_news = []
-    case_study_str = "<관련 사례>\n"
+    case_study_str = "<<<관련 사례>>>\n"
 
     print(citations)
     if len(case_study) > 0:
@@ -233,7 +233,7 @@ async def perplexity(payload: RequestModel):
     else:
         case_study_str = ""
 
-    applied_study_str = "<응용 탐구>\n"
+    applied_study_str = "<<<응용 탐구>>>\n"
     if len(applied_study) > 0:
         for i in applied_study:
             applied_study_str +=f"""
