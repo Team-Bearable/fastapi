@@ -82,6 +82,11 @@ def escape_control_characters(s: str) -> str:
     s = s.replace("\t", "\\t")
     return s
 
+def output_escape_control_characters(s: str) -> str:
+    s = s.replace("\\n", "\n")
+    s = s.replace("\\r", "\r")
+    s = s.replace("\\t", "\t")
+    return s
 
 def process_result(result):
     """
@@ -176,7 +181,7 @@ async def seteuk_body(payload: BodyModel):
     except Exception as e:
         print('body 오류:', e)
     
-    answer = [proto['introduction'], result_gpt +'\n'+ case_result , proto['conclusion']]
+    answer = [output_escape_control_characters(proto['introduction']), result_gpt +'\n'+ case_result , output_escape_control_characters(proto['conclusion'])]
     return {'response': answer}
 
 @router.post("/perplexity")
