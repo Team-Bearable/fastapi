@@ -58,11 +58,15 @@ def parse_json_response(response, is_perple=False):
 def json_format(response):
     start = response.find("{")
     end = response.rfind("}")
-    print('뽑기:', response)
+    print('뽑기:', repr(response))
     if start != -1 and end != -1 and start < end:
+        print('start: ', start)
+        print('end: ', end)
         candidate = response[start:end+1]
         # 전처리: 제어문자 이스케이프
         candidate = escape_control_characters(candidate)
+        print('수정후:', repr(candidate))
+
         try:
             print("성공---\n", candidate)
             return json.loads(candidate)
