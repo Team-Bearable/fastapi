@@ -55,29 +55,6 @@ def parse_json_response(response, is_perple=False):
     
     raise ValueError(f"JSON 변환 실패. 원본 데이터:\n{response}")
 
-# def json_format(response):
-#     start = response.find("{")
-#     end = response.rfind("}")
-#     print('뽑기:', repr(response))
-#     if start != -1 and end != -1 and start < end:
-#         print('start: ', start)
-#         print('end: ', end)
-#         candidate = response[start:end+1]
-#         # 전처리: 제어문자 이스케이프
-#         candidate = escape_control_characters(candidate)
-#         print('수정후:', repr(candidate))
-
-#         try:
-#             print("성공---\n", candidate)
-#             return json.loads(candidate)
-#         except Exception as e:
-#             print("json.loads 직접 파싱 실패: %s" % e)
-#             print("---\n", candidate)
-
-    # 이후 다른 방법의 파싱 로직...
-    # (생략)
-    
-    # raise ValueError(f"proto 결과 파싱 실패. 원본: {response}")
 
 def json_format(json_str: str) -> dict:
     """
@@ -103,25 +80,17 @@ def json_format(json_str: str) -> dict:
     return data
 
 
-# # 위 함수를 사용하기 전에 정의
-# def escape_control_characters(s: str) -> str:
-#     # s = s.replace("\n", "\\n")
-#     # s = s.replace("\r", "\\r")
-#     # s = s.replace("\t", "\\t")
-#     # s = re.sub(r'\\n(?=\})', '', s)  
-#     # s = re.sub(r'\\(?=\})', '', s)  
-#     if "\n" in s and "\\n" not in s:
-#         s = s.replace("\n", "\\n")
-#     if "\r" in s and "\\r" not in s:
-#         s = s.replace("\r", "\\r")
-#     if "\t" in s and "\\t" not in s:
-#         s = s.replace("\t", "\\t")
-#     return s
 
 def output_escape_control_characters(s: str) -> str:
     s = s.replace("\\\\n", "\n")
     s = s.replace("\\\\r", "\r")
     s = s.replace("\\\\t", "\t")
+    s = s.replace("\\\n", "\n")
+    s = s.replace("\\\r", "\r")
+    s = s.replace("\\\t", "\t")
+    s = s.replace("\\n", "\n")
+    s = s.replace("\\r", "\r")
+    s = s.replace("\\t", "\t")
     return s
 
 def process_result(result):
@@ -155,9 +124,8 @@ def perple_process_result(result):
 
 
 def llm_material_organizer(major, topic, context, model):
-    print('1단계')
+
     tp_cs = material_organizer()
-    print('2단계')
     topic_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", tp_cs.system),
