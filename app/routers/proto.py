@@ -12,7 +12,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 import ast
 import json
-
+import re
 class RequestModel(BaseModel):
     major: str
     keyword: str
@@ -79,17 +79,21 @@ def json_format(response):
     
     raise ValueError(f"proto 결과 파싱 실패. 원본: {response}")
 
+
 # 위 함수를 사용하기 전에 정의
 def escape_control_characters(s: str) -> str:
     s = s.replace("\n", "\\n")
     s = s.replace("\r", "\\r")
     s = s.replace("\t", "\\t")
+        # `}` 앞의 문자열을 뒤에서부터 스캔하여 `\n` 또는 `\` 제거
+    s = re.sub(r'[\n\\]+(?="?\})', '', s)
     return s
 
 def output_escape_control_characters(s: str) -> str:
     s = s.replace("\\n", "\n")
     s = s.replace("\\r", "\r")
     s = s.replace("\\t", "\t")
+    s = re.sub(r'[\n\\]+(?="?\})', '', s)
     return s
 
 def process_result(result):
@@ -103,6 +107,7 @@ def process_result(result):
 def perple_json_format(response):
     response = response.replace("json", '')
     response = response.replace("```", '').strip()
+    response = re.sub(r'[\n\\]+(?="?\})', '', response)
     response = ast.literal_eval(response)
     return response
 
