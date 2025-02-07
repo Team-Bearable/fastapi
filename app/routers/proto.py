@@ -119,9 +119,9 @@ def json_format(json_str: str) -> dict:
 #     return s
 
 def output_escape_control_characters(s: str) -> str:
-    s = s.replace("\\\n", "\n")
-    s = s.replace("\\\r", "\r")
-    s = s.replace("\\\t", "\t")
+    s = s.replace("\\\\n", "\n")
+    s = s.replace("\\\\r", "\r")
+    s = s.replace("\\\\t", "\t")
     return s
 
 def process_result(result):
