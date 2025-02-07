@@ -12,7 +12,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 import ast
 import json
-
+import re
 class RequestModel(BaseModel):
     major: str
     keyword: str
@@ -55,37 +55,73 @@ def parse_json_response(response, is_perple=False):
     
     raise ValueError(f"JSON 변환 실패. 원본 데이터:\n{response}")
 
-def json_format(response):
-    start = response.find("{")
-    end = response.rfind("}")
-    print('뽑기:', response)
-    if start != -1 and end != -1 and start < end:
-        candidate = response[start:end+1]
-        # 전처리: 제어문자 이스케이프
-        candidate = escape_control_characters(candidate)
-        try:
-            print("성공---\n", candidate)
-            return json.loads(candidate)
-        except Exception as e:
-            print("json.loads 직접 파싱 실패: %s" % e)
-            print("---\n", candidate)
-    
+# def json_format(response):
+#     start = response.find("{")
+#     end = response.rfind("}")
+#     print('뽑기:', repr(response))
+#     if start != -1 and end != -1 and start < end:
+#         print('start: ', start)
+#         print('end: ', end)
+#         candidate = response[start:end+1]
+#         # 전처리: 제어문자 이스케이프
+#         candidate = escape_control_characters(candidate)
+#         print('수정후:', repr(candidate))
+
+#         try:
+#             print("성공---\n", candidate)
+#             return json.loads(candidate)
+#         except Exception as e:
+#             print("json.loads 직접 파싱 실패: %s" % e)
+#             print("---\n", candidate)
+
     # 이후 다른 방법의 파싱 로직...
     # (생략)
     
-    raise ValueError(f"proto 결과 파싱 실패. 원본: {response}")
+    # raise ValueError(f"proto 결과 파싱 실패. 원본: {response}")
 
-# 위 함수를 사용하기 전에 정의
-def escape_control_characters(s: str) -> str:
-    s = s.replace("\n", "\\n")
-    s = s.replace("\r", "\\r")
-    s = s.replace("\t", "\\t")
-    return s
+def json_format(json_str: str) -> dict:
+    """
+    json_str 문자열에서 "introduction", "body", "conclusion"에 해당하는
+    key와 value만 추출하여 딕셔너리로 반환합니다.
+    
+    이 방법은 전체 문자열의 불필요한 \n 등의 제어문자에 신경쓰지 않고,
+    key-value 구조가 고정되어 있다는 가정 하에 효율적으로 원하는 부분만 추출합니다.
+    """
+    # 정규표현식 설명:
+    #  - "(introduction|body|conclusion)" : 추출할 key (세 가지 중 하나)
+    #  - \s*:\s* : 콜론(:) 앞뒤의 공백 허용
+    #  - "((?:\\.|[^"\\])*)" : 따옴표로 감싸인 value. 내부에 이스케이프된 문자(\\.) 또는 따옴표와 역슬래시가 아닌 문자를 포함.
+    pattern = re.compile(
+        r'"(introduction|body|conclusion)"\s*:\s*"((?:\\.|[^"\\])*)"'
+    )
+    matches = pattern.findall(json_str)
+    
+    if len(matches) != 3:
+        raise ValueError(f"Expected exactly 3 key-value pairs, but found {len(matches)}.")
+    
+    data = {key: value for key, value in matches}
+    return data
+
+
+# # 위 함수를 사용하기 전에 정의
+# def escape_control_characters(s: str) -> str:
+#     # s = s.replace("\n", "\\n")
+#     # s = s.replace("\r", "\\r")
+#     # s = s.replace("\t", "\\t")
+#     # s = re.sub(r'\\n(?=\})', '', s)  
+#     # s = re.sub(r'\\(?=\})', '', s)  
+#     if "\n" in s and "\\n" not in s:
+#         s = s.replace("\n", "\\n")
+#     if "\r" in s and "\\r" not in s:
+#         s = s.replace("\r", "\\r")
+#     if "\t" in s and "\\t" not in s:
+#         s = s.replace("\t", "\\t")
+#     return s
 
 def output_escape_control_characters(s: str) -> str:
-    s = s.replace("\\n", "\n")
-    s = s.replace("\\r", "\r")
-    s = s.replace("\\t", "\t")
+    s = s.replace("\\\\n", "\n")
+    s = s.replace("\\\\r", "\r")
+    s = s.replace("\\\\t", "\t")
     return s
 
 def process_result(result):
@@ -99,6 +135,7 @@ def process_result(result):
 def perple_json_format(response):
     response = response.replace("json", '')
     response = response.replace("```", '').strip()
+    response = re.sub(r'[\n\\]+(?="?\})', '', response)
     response = ast.literal_eval(response)
     return response
 
@@ -118,15 +155,19 @@ def perple_process_result(result):
 
 
 def llm_material_organizer(major, topic, context, model):
+    print('1단계')
     tp_cs = material_organizer()
+    print('2단계')
     topic_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", tp_cs.system),
             ("user", tp_cs.human),
         ]
     )
+    
     chain_gpt  = {"major": RunnablePassthrough(), "topic": RunnablePassthrough(), 'context':RunnablePassthrough() }|topic_prompt | model | StrOutputParser()
     result_gpt = chain_gpt.invoke({'major': major, 'topic':topic, 'context': context})
+
     return result_gpt
 
 @router.post("/proto")
@@ -166,7 +207,7 @@ async def seteuk_body(payload: BodyModel):
     case_result = payload.case_result
 
     proto = json.loads(proto)
-
+    print('이 상태에서 바뀌는거', repr(proto))
     tp_cs = seteukBasicBodyTop()
     topic_prompt = ChatPromptTemplate.from_messages(
         [
@@ -199,6 +240,7 @@ async def perplexity(payload: RequestModel):
         {"role": "user",
          "content": (prompt.user)}
     ]
+
     try:
         response = perple.chat.completions.create(
             model = perplexity_model,
@@ -208,20 +250,21 @@ async def perplexity(payload: RequestModel):
         citations = response.citations
     except Exception as e:
         print('perplexity 오류:', e)
+    json_case = ""
+    case = ""
     while True:
         try:
-            case = llm_material_organizer(major, topic, case_result, gpt4o)    
+            case = llm_material_organizer(major, topic, case_result, gpt4o) 
             json_case = perple_process_result(case)
             break
         except Exception as e:
             print('perple json 오류:', e)
-            continue
+            print('이거보세요', case)
+            break
     case_study = list(filter(lambda x: x['host']!='no', json_case))
     applied_study = list(filter(lambda x: x['host']=='no', json_case))
     reference_news = []
     case_study_str = "<<<관련 사례>>>\n"
-
-    print(citations)
     if len(case_study) > 0:
         for i in case_study:
             print('펄플i', i)
