@@ -207,7 +207,7 @@ async def seteuk_body(payload: BodyModel):
     case_result = payload.case_result
 
     proto = json.loads(proto)
-
+    print('이 상태에서 바뀌는거', repr(proto))
     tp_cs = seteukBasicBodyTop()
     topic_prompt = ChatPromptTemplate.from_messages(
         [
@@ -222,7 +222,7 @@ async def seteuk_body(payload: BodyModel):
     except Exception as e:
         print('body 오류:', e)
     
-    answer = [proto['introduction'], result_gpt +'\n'+ case_result , proto['conclusion']]
+    answer = [output_escape_control_characters(proto['introduction']), result_gpt +'\n'+ case_result , output_escape_control_characters(proto['conclusion'])]
     return {'response': answer}
 
 @router.post("/perplexity")
