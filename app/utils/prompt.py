@@ -128,6 +128,10 @@ class material_organizer:
         * Organize and document the findings accordingly.
         * When extracting content, generate as detailed and accurate information as possible. 
         * Provide the response in Korean using polite language.
+        
+        IMPORTANCE:
+        * When organizing the src, ensure that all reference numbers are properly grouped within a single list. For example, if the same content is sourced from both [1] and [2], represent it as [1,2] instead of separate entries.
+
         ---
         MAJOR:
         교육학
@@ -253,8 +257,8 @@ class material_organizer:
         유전자 치료가 간호학 실무에 미치는 영향: 세포 수준에서 질병 관리 사례 연구
 
         OUTPUT:
-        '[{"topic": "삼성서울병원 세포·유전자 치료 연구소의 연구","content": "삼성서울병원 세포·유전자 치료 연구소는 불치 및 난치 질환으로 고통받는 환자들에게 새로운 치료법을 개발하기 위한 연구를 진행하고 있습니다. 이 연구소는 임상 등급의 성체 줄기세포 생산이 가능한 GMP 생산 시설을 구축하고, 전임상 및 임상 시험을 통해 유전자 치료의 실효성과 안전성을 평가하고 있습니다. 이 연구는 유전자 치료가 난치성 질환 치료에 기여할 수 있는 가능성을 제시하고 있습니다.","host": "삼성서울병원 세포·유전자 치료 연구소","src": "[3]"}},
-          {{"topic": "유전자 치료의 안전성과 효과 연구","content": "유전자 치료의 안전성과 효과를 평가하기 위한 연구는 유전자 치료 임상 시험이 시작된 1989년 이후로 꾸준히 진행되고 있습니다. 특히, 2012년 글리베라(Glybera)의 허가는 유전자 치료의 안전성 문제를 해결하는 데 중요한 전환점이 되었습니다. 이러한 연구는 유전자 치료의 임상 적용 가능성을 높이고, 환자 치료에 대한 새로운 접근 방식을 모색하는 데 기여하고 있습니다.","host": "no","src": "[2]"},
+        '[{{"topic": "삼성서울병원 세포·유전자 치료 연구소의 연구","content": "삼성서울병원 세포·유전자 치료 연구소는 불치 및 난치 질환으로 고통받는 환자들에게 새로운 치료법을 개발하기 위한 연구를 진행하고 있습니다. 이 연구소는 임상 등급의 성체 줄기세포 생산이 가능한 GMP 생산 시설을 구축하고, 전임상 및 임상 시험을 통해 유전자 치료의 실효성과 안전성을 평가하고 있습니다. 이 연구는 유전자 치료가 난치성 질환 치료에 기여할 수 있는 가능성을 제시하고 있습니다.","host": "삼성서울병원 세포·유전자 치료 연구소","src": "[3]"}},
+          {{"topic": "유전자 치료의 안전성과 효과 연구","content": "유전자 치료의 안전성과 효과를 평가하기 위한 연구는 유전자 치료 임상 시험이 시작된 1989년 이후로 꾸준히 진행되고 있습니다. 특히, 2012년 글리베라(Glybera)의 허가는 유전자 치료의 안전성 문제를 해결하는 데 중요한 전환점이 되었습니다. 이러한 연구는 유전자 치료의 임상 적용 가능성을 높이고, 환자 치료에 대한 새로운 접근 방식을 모색하는 데 기여하고 있습니다.","host": "no","src": "[2]"}},
           {{"topic": "충남대학교 의과대학의 연구","content": "충남대학교 의과대학의 이혜미 교수는 유전자 치료의 연구 동향을 분석하고 있습니다. 이 연구는 유전자 치료가 개인 맞춤형 의료를 제공할 수 있는 가능성을 열어주며, 환자 교육과 심리적 지원의 중요성을 강조하고 있습니다. 또한, 유전자 치료가 질병 관리의 효과를 높일 수 있는 방법을 탐색하고 있습니다.","host": "충남대학교 의과대학","src": "[2, 3]"}}]'
 
     """
