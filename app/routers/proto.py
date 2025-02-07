@@ -103,25 +103,25 @@ def json_format(json_str: str) -> dict:
     return data
 
 
-# 위 함수를 사용하기 전에 정의
-def escape_control_characters(s: str) -> str:
-    # s = s.replace("\n", "\\n")
-    # s = s.replace("\r", "\\r")
-    # s = s.replace("\t", "\\t")
-    # s = re.sub(r'\\n(?=\})', '', s)  
-    # s = re.sub(r'\\(?=\})', '', s)  
-    if "\n" in s and "\\n" not in s:
-        s = s.replace("\n", "\\n")
-    if "\r" in s and "\\r" not in s:
-        s = s.replace("\r", "\\r")
-    if "\t" in s and "\\t" not in s:
-        s = s.replace("\t", "\\t")
-    return s
+# # 위 함수를 사용하기 전에 정의
+# def escape_control_characters(s: str) -> str:
+#     # s = s.replace("\n", "\\n")
+#     # s = s.replace("\r", "\\r")
+#     # s = s.replace("\t", "\\t")
+#     # s = re.sub(r'\\n(?=\})', '', s)  
+#     # s = re.sub(r'\\(?=\})', '', s)  
+#     if "\n" in s and "\\n" not in s:
+#         s = s.replace("\n", "\\n")
+#     if "\r" in s and "\\r" not in s:
+#         s = s.replace("\r", "\\r")
+#     if "\t" in s and "\\t" not in s:
+#         s = s.replace("\t", "\\t")
+#     return s
 
 def output_escape_control_characters(s: str) -> str:
-    s = s.replace("\\n", "\n")
-    s = s.replace("\\r", "\r")
-    s = s.replace("\\t", "\t")
+    s = s.replace("\\\n", "\n")
+    s = s.replace("\\\r", "\r")
+    s = s.replace("\\\t", "\t")
     return s
 
 def process_result(result):
