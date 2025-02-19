@@ -13,7 +13,7 @@ PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
 
 anthropic = ChatAnthropic(
     model="claude-3-5-sonnet-20240620",
-    max_tokens_to_sample=6500,
+    max_tokens_to_sample=6000,
     temperature=0.8, 
     api_key = ANTHROPIC_API_KEY)
 
