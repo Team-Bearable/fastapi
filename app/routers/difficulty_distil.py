@@ -51,17 +51,10 @@ async def topic_gen(payload: TopicModel):
     tip_chain = {"major": RunnablePassthrough(), 'keyword': RunnablePassthrough(), 'topics': RunnablePassthrough()}|tip_prompt | anthropic | StrOutputParser()
     tip_result = tip_chain.invoke({'major':major, 'keyword':keyword, 'topics':topic_result})
     print('팁결과',repr(tip_result))
-    # json_result = eval(tip_result)
-    match = re.search(r'\[\s*(.*?)\s*\]', tip_result, re.DOTALL)
+    json_result = eval(tip_result)
+    print('타입', type(json_result))
 
-    if match:
-        extracted_text = match.group(1).replace("\n", "").strip()
-        
-        # 올바른 리스트 형태로 변환 (문자열을 리스트로 변환)
-        extracted_list = ast.literal_eval(f"[{extracted_text}]")
-    
-
-    return extracted_list
+    return json_result
 
 
 @router.post("/guidelines")
