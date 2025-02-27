@@ -10,7 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from services.difficulty_service_distil.difficulty_graph import run
+from services.difficulty_service_distil2.difficulty_graph import run
 
 class TopicModel(BaseModel):
     major: str
