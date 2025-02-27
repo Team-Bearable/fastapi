@@ -53,6 +53,7 @@ async def topic_gen(payload: TopicModel):
     tip_result = tip_chain.invoke({'major':major, 'keyword':keyword, 'topics':topic_result})
     print('팁결과',repr(tip_result))
     json_result = eval(tip_result)
+    print('타입', type(json_result))
 
     return json_result
 
