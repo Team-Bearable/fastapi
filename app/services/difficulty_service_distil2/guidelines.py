@@ -57,7 +57,7 @@ def seteuk_body(state):
             ("user", tp_cs.human),
         ]
     )
-    chain_gpt  = {"context":RunnablePassthrough(), "topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough(), 'keyword': RunnablePassthrough()}|topic_prompt | anthropic | StrOutputParser()
+    chain_gpt  = {"context":RunnablePassthrough(), "topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough(), 'keyword': RunnablePassthrough()}|topic_prompt | gpt4o | StrOutputParser()
     result_gpt = chain_gpt.invoke({'context': context, 'topic':topic, 'proto':proto['body'], 'major': major, 'seteuk_depth': difficulty, 'keyword': state['keyword']})
 
     print('body 끝')
