@@ -28,7 +28,7 @@ def seteuk_intro(state):
         ]
     )
 
-    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough()}|topic_prompt | anthropic | StrOutputParser()
+    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough()}|topic_prompt | gpt4o | StrOutputParser()
     result = None
     
     try:
@@ -62,8 +62,7 @@ def seteuk_body(state):
             ("user", tp_cs.human),
         ]
     )
-    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough(), 'keyword': RunnablePassthrough()}|topic_prompt | anthropic | StrOutputParser()
-    result = None
+    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough(), 'keyword': RunnablePassthrough()}|topic_prompt | gpt4o | StrOutputParser()
     result = chain.invoke({'topic':topic, 'proto':proto['body'], 'major': major, 'seteuk_depth': difficulty, 'keyword': state['keyword']})
 
     return {'body': result}
@@ -91,7 +90,7 @@ def seteuk_conclusion(state):
             ("user", tp_cs.human),
         ]
     )
-    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough()}|topic_prompt | anthropic | StrOutputParser()
+    chain  = {"topic": RunnablePassthrough(), 'proto': RunnablePassthrough(), 'major': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough()}|topic_prompt | gpt4o | StrOutputParser()
     result = None
     
     try:

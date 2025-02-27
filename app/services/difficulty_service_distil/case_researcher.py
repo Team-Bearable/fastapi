@@ -16,7 +16,7 @@ def llm_material_organizer(major, topic, context, model, state):
             ("user", tp_cs.human),
         ]
     )
-    chain  = {"major": RunnablePassthrough(), "topic": RunnablePassthrough(), 'context':RunnablePassthrough() }|topic_prompt | model | StrOutputParser()
+    chain  = {"major": RunnablePassthrough(), "topic": RunnablePassthrough(), 'context':RunnablePassthrough() }|topic_prompt | gpt4o | StrOutputParser()
     result = chain.invoke({'major': major, 'topic':topic, 'context': context})
     return result
 
