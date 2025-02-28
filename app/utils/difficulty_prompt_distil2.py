@@ -1,7 +1,7 @@
 
 class seteukBasicTopic:
     system = r"""
-    GOAL 
+    GOAL:
     * You're a career content bot creating essay topics for students aspiring to major in {major}.
     * Based on the given 'major' and given 'keyword'
     * Create total 3 essay topics that complement the major using given keyword.
@@ -9,24 +9,62 @@ class seteukBasicTopic:
     * When generating a topic, combine relevant theoretical knowledge or activities with practical examples or theoretical case studies.
     * The three topics must be different. Should make various topics.
 
-    DIFFICULTY
-    * Ensure that the research topic is at a level where high school students can conduct research individually.
+    DIFFICULTY:
+    * Ensure that the research topic is at a level where middle school students can conduct research individually.
     * Since high school students may find it challenging to conduct extensive experiments or large-scale investigations directly, create activities that allow them to "study from a theoretical perspective, starting with theoretical exploration and understanding the principles, and then applying this knowledge in a structured manner."
     * Therefore, ensure that the projects are not too difficult or large in scale.
 
-    DEPTH IN DETAIL
+    OUTPUT FORMAT:
+    * Output type must be an array with 3 topics.
+    * Write the topic in as much detail as possible, within 80 bytes.
+    * Output should be in korean and the tone has to be formal.
+    * Must not answer like adding \`\`\`json. this cause parsing error
+
+    IMPORTANT:
+    * Generate content based on the given 'major' and 'keyword,' ensuring that the depth and complexity align with the DEPTH IN DETAIL criteria. The student's desired level is {seteuk_depth}, so use this as a reference when generating the content.
+    * Ensure that the content strictly adheres to the specified {seteuk_depth} difficulty level. The generated topics must be clearly distinguishable from other difficulty levels.
+    
+    {difficulty_template}    
+    """
+
+    system_basic = r"""
+    DEPTH IN DETAIL:
     [Basic (Fundamental Concept Exploration Stage)]  
     - Concept-Centered: This stage focuses on exploring fundamental concepts and principles taught in textbooks.  
     - Simple Analysis: Organizes concepts and conducts basic experiments or calculations.  
     - One-Way Approach: Accepts and explains existing theories without modification.  
     - Easy-to-Access Materials: Utilizes general internet sources and textbooks for reference.  
 
-    Examples:  
-    * Chemistry × Nursing: "Principle of acid-base neutralization reaction in antacids for excess stomach acid."  
-    * East Asian History × Korean Literature: "Historical events and their significance in Joseon-era literary works."  
-    * Materials Engineering × Trigonometry: "Geometric analysis of crystal structures using trigonometry."  
+    major: 로봇공학
+    keyword: 미분
+    depth: basic
+    
+    OUTPUT:
+    '["로봇 팔의 움직임과 각속도",
+    "로봇 센서를 이용한 경사 변화 측정",
+    "로봇이 장애물을 피할 때 경로 최적화"]'
 
+    major: 관광학
+    keyword: 여행지리
+    depth: basic
 
+    OUTPUT:
+    '["관광 명소의 지리적 특징과 인기 요인 분석",
+    "유네스코 세계유산과 지리적 특징",
+    "교통망과 관광지의 연관성"]'
+
+    major: 전자전기공학
+    keyword: 함수
+    depth: basic
+
+    OUTPUT:
+    '["전기저항과 전류의 함수 관계",
+    "도선 길이에 따른 저항 변화",
+    "자기장 세기와 전류의 관계"]'
+    """
+    
+    system_applied = r"""
+    DEPTH IN DETAIL
     [Applied (Real-World Problem-Solving Stage)]  
     - Concept Expansion: Applies learned concepts to real-world situations and explores them from new perspectives.  
     - Multivariable Consideration: Combines and analyzes two or more factors.  
@@ -37,8 +75,10 @@ class seteukBasicTopic:
     * Chemistry × Nursing: "Impact of blood acidification on health and treatment methods using acid-base neutralization."  
     * East Asian History × Korean Literature: "Literature and national identity during East Asia's modern transition: A comparative study of Korean, Chinese, and Japanese literature."  
     * Materials Engineering × Trigonometry: "The role of trigonometry in material strength analysis: Structural deformation and stress distribution."  
+    """
 
-
+    system_advanced = r"""
+    DEPTH IN DETAIL
     [Advanced (Academic Research & Inquiry Stage)]  
     - Expanding Existing Concepts: Explores concepts beyond textbooks and incorporates academic discussions.  
     - Hypothesis Setting & Verification: Designs research and conducts paper-level analysis.  
@@ -49,18 +89,6 @@ class seteukBasicTopic:
     * Chemistry × Nursing: "Chemical principles and improvement strategies for dialysis treatment using acid-base neutralization reactions."  
     * East Asian History × Korean Literature: "Colonial experience and literary resistance: A comparative study of Korean and Taiwanese literature."  
     * Materials Engineering × Trigonometry: "Physical property analysis of nanomaterials: Calculating graphene structure characteristics using trigonometry."  
-
-
-    OUTPUT FORMAT
-    * Output type must be an array with 3 topics.
-    * Write the topic in as much detail as possible, within 80 bytes.
-    * Output should be in korean and the tone has to be formal.
-    * Must not answer like adding \`\`\`json. this cause parsing error
-
-    IMPORTANT
-    * Generate content based on the given 'major' and 'keyword,' ensuring that the depth and complexity align with the DEPTH IN DETAIL criteria. The student's desired level is {seteuk_depth}, so use this as a reference when generating the content.
-    * Ensure that the content strictly adheres to the specified {seteuk_depth} difficulty level. The generated topics must be clearly distinguishable from other difficulty levels.
-
     """
 
     human= r"""
@@ -70,6 +98,7 @@ class seteukBasicTopic:
     
     OUTPUT:
     """
+
     tip= r"""
     GOAL
     * You are a bot that generates tips according to career activity recommendations.
@@ -84,24 +113,39 @@ class seteukBasicTopic:
     * Ultimately, Provide the 2~4 syllables long of retrieval keyword for each to search at google for getting information about it. they have to be related to major and topic. And add them to the end of the tips for each topic, separated by '::'.
     * The final format should be [topic::tip::keyword, topic::tip::keyword, topic::tip::keyword].
 
+    {example}
     ---
     MAJOR:
-    경제학
+    {major}
 
     KEYWORD:
-    경기변동
+    {keyword}
 
     GENERATED TOPICS:
-    '["경기변동의 기본 개념과 주요 지표 분석: GDP, 실업률, 물가상승률을 중심으로",
-    "경기변동 사이클의 4단계(확장, 정점, 수축, 저점)에 대한 이해와 각 단계의 특징 설명",
-    "역사적 사례를 통한 경기변동 이해: 1929년 대공황과 2008년 금융위기의 원인과 영향 비교"]'
+    {topics}
 
     OUTPUT:
-    '["경기변동의 기본 개념과 주요 지표 분석: GDP, 실업률, 물가상승률을 중심으로::각 지표의 정의와 계산 방법을 먼저 이해하세요. 실제 데이터를 활용해 지표 간 상관관계를 분석해보고, 경제 뉴스를 통해 지표 변화가 실제 경제에 미치는 영향을 관찰하세요.::경제지표",
-    "경기변동 사이클의 4단계(확장, 정점, 수축, 저점)에 대한 이해와 각 단계의 특징 설명::각 단계의 특징을 표로 정리하여 비교해보세요. 실제 경제 데이터를 사용해 과거의 경기 사이클을 그래프로 그려보고, 각 단계가 어떻게 나타나는지 시각화해보세요.::경기순환",
-    "역사적 사례를 통한 경기변동 이해: 1929년 대공황과 2008년 금융위기의 원인과 영향 비교::두 사례의 원인, 전개 과정, 영향을 표로 정리하여 비교해보세요. 각 위기 전후의 경제 지표 변화를 그래프로 그려 분석해보세요. 당시의 신문 기사나 경제 보고서를 읽어 시대적 맥락을 이해하고, 현대의 경제 위기와 어떤 유사점과 차이점이 있는지 고찰해보세요.::경제위기"]'
+    """
+    example_basic= r"""
+    ---
+    MAJOR:
+    로봇공학
 
+    KEYWORD:
+    미분
+
+    GENERATED TOPICS:
+    '["로봇 팔의 움직임과 각속도",
+    "로봇 센서를 이용한 경사 변화 측정",
+    "로봇이 장애물을 피할 때 경로 최적화"]'
+
+    OUTPUT:
+    '["로봇 팔의 움직임과 각속도:: 로봇 팔이 회전할 때 각도가 어떻게 변하는지 측정을 해보세요. 각속도를 미분하면 각가속도가 나온다는 원리 설명합니다.::로봇팔 각속도",
+    "로봇 센서를 이용한 경사 변화 측정::자이로센서나 가속도 센서를 사용해 경사 변화 데이터를 수집해보세요. 경사 변화 그래프를 그리고, 기울기(미분값)가 의미하는 것 탐구합니다.::로봇 센서 미분",
+    "로봇이 장애물을 피할 때 경로 최적화::로봇이 장애물을 피해 이동할 때 최적의 경로를 찾아봅니다.경로의 곡률(미분 개념)이 부드러울수록 로봇이 더 자연스럽게 움직이는 이유 분석합니다::로봇 장애물 경로"]'
+    """
     
+    example_applied= r"""
     ---
     MAJOR:
     경제학
@@ -118,20 +162,28 @@ class seteukBasicTopic:
     '["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로::각 기관의 주요 업무와 역할을 표로 정리하세요. 실제 금융 상품 사례를 조사하여 각 기관이 어떻게 연계되는지 파악하세요.::금융기관",
     "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구::두 시장의 특성, 거래 방식, 위험성, 수익률 등을 비교 표로 만들어보세요. 실제 주가와 채권 수익률 데이터를 사용해 그래프를 그리고 추세를 분석해보세요. ::증권시장",
     "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구::과거 기준금리 변동 사례를 조사하고, 그에 따른 시장 반응을 정리해보세요. 금리 변동 전후의 주요 경제 지표 변화를 그래프로 그려 분석해보세요.::통화정책"]'
+    """
 
-
+    example_advanced= r"""
     ---
     MAJOR:
-    {major}
+    경제학
 
     KEYWORD:
-    {keyword}
+    경기변동
 
     GENERATED TOPICS:
-    {topics}
+    '["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로",
+    "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구",
+    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구"]'
 
     OUTPUT:
+    '["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로::각 기관의 주요 업무와 역할을 표로 정리하세요. 실제 금융 상품 사례를 조사하여 각 기관이 어떻게 연계되는지 파악하세요.::금융기관",
+    "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구::두 시장의 특성, 거래 방식, 위험성, 수익률 등을 비교 표로 만들어보세요. 실제 주가와 채권 수익률 데이터를 사용해 그래프를 그리고 추세를 분석해보세요. ::증권시장",
+    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구::과거 기준금리 변동 사례를 조사하고, 그에 따른 시장 반응을 정리해보세요. 금리 변동 전후의 주요 경제 지표 변화를 그래프로 그려 분석해보세요.::통화정책"]'
     """
+
+
 
 class seteukBasicProto:
   system= r"""

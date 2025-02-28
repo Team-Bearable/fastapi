@@ -1,5 +1,6 @@
 from utils.difficulty_prompt_distil2 import protoResearcher_prompt
 from utils.model import anthropic, perple, perplexity_model, gpt4o
+from utils.logging_config import logger 
 
 
 def protoResearcher(state):
@@ -19,8 +20,10 @@ def protoResearcher(state):
                 model = perplexity_model,
                 messages = perple_messages
             )
-    case_result = response.choices[0].message.content
-
+    try: 
+        case_result = response.choices[0].message.content
+    except Exception as e:
+        logger.exception("Error during protoResearcher extraction: %s", e)
     return {"information": [case_result]}
 
 def protoResearchDataset(state):

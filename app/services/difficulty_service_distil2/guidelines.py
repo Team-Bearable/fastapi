@@ -5,7 +5,6 @@ from utils.difficulty_prompt_distil2 import seteukBasicBodyTop, seteukBasicIntro
 from utils.model import anthropic, perple, perplexity_model, gpt4o
 import json
 
-
 def seteuk_intro(state):
     print('seteuk_intro 진입')
     topic = state['topic']

@@ -5,7 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 from utils.difficulty_prompt_distil2 import  material_organizer, perplexity_prompt
 from utils.model import anthropic, perple, perplexity_model, gpt4o
 from utils.utils import perple_process_result
-
+from utils.logging_config import logger 
 
 def llm_material_organizer(major, topic, context, model, state):
 
@@ -23,6 +23,9 @@ def llm_material_organizer(major, topic, context, model, state):
 
 
 def perplexity(state):
+    """
+    perplexity extraction
+    """
     print('perplexity 진입')
     # 테스트용 기본 응답 데이터 생성
     major = state['major']
@@ -44,7 +47,7 @@ def perplexity(state):
         case_result = response.choices[0].message.content
         citations = response.citations
     except Exception as e:
-        print('perplexity 오류:', e)
+        logger.exception("Error during perplexity extraction: %s", e)
     json_case = ""
     case = ""
     while True:
@@ -54,13 +57,12 @@ def perplexity(state):
             json_case = perple_process_result(case)
             break
         except Exception as e:
-            print('perple json 오류:', e)
-            print('이거보세요', case)
+            logger.exception("Error during perplexity data processing: %s", e)
             break
     case_study = list(filter(lambda x: x['host']!='no', json_case))
     applied_study = list(filter(lambda x: x['host']=='no', json_case))
     reference_news = []
-    case_study_str = "<<<관련 사례>>>\n"
+    case_study_str = "<<<관련 사례>>>"
     if len(case_study) > 0:
         for i in case_study:
             if i['src'] != 'no':
@@ -78,7 +80,7 @@ def perplexity(state):
     else:
         case_study_str = ""
 
-    applied_study_str = "<<<응용 탐구>>>\n"
+    applied_study_str = "<<<응용 탐구>>>"
     if len(applied_study) > 0:
         for i in applied_study:
             if i['src'] != 'no':
