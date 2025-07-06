@@ -28,4 +28,4 @@ gpt4o_mini = ChatOpenAI(
     openai_api_key = OPENAI_API_KEY)
 
 perple = OpenAI(api_key = PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
-perplexity_model = "llama-3.1-sonar-small-128k-online"
+perplexity_model = "sonar"
