@@ -3,6 +3,9 @@ from fastapi import APIRouter, HTTPException
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 import sys, os, ast, re
+
+from app.routers.proto import parse_json_response
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils.model import anthropic, gpt4o, gpt4o_mini, perple, perplexity_model
 from utils.difficulty_prompt_distil import seteukBasicTopic
@@ -51,7 +54,7 @@ async def topic_gen(payload: TopicModel):
     tip_chain = {"major": RunnablePassthrough(), 'keyword': RunnablePassthrough(), 'topics': RunnablePassthrough()}|tip_prompt | anthropic | StrOutputParser()
     tip_result = tip_chain.invoke({'major':major, 'keyword':keyword, 'topics':topic_result})
     print('팁결과',repr(tip_result))
-    json_result = eval(tip_result)
+    json_result = ast.literal_eval(tip_result)
     print('타입', type(json_result))
 
     return json_result
