@@ -1,3 +1,5 @@
+import ast
+
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -43,7 +45,18 @@ def protoInspector(state):
     proto = state['proto']
     chain_gpt  = {"major": RunnablePassthrough(), 'keyword': RunnablePassthrough(), 'topic': RunnablePassthrough(), 'seteuk_depth': RunnablePassthrough(), 'proto': RunnablePassthrough()}|topic_prompt | gpt4o | StrOutputParser()
     result_inspector = chain_gpt.invoke({'major':major, 'keyword':keyword, 'topic': topic, 'seteuk_depth': seteuk_depth, 'proto': proto})
-    result = eval(result_inspector)['Response']
+    try:
+        # 문자열 전처리 - 마침표 등 제거
+        cleaned_result = result_inspector.strip()
+        if cleaned_result.endswith('.'):
+            cleaned_result = cleaned_result[:-1]  # 마지막 마침표 제거
+
+        # ast.literal_eval 사용
+        parsed_result = ast.literal_eval(cleaned_result)
+        result = parsed_result['Response']
+    except Exception as e:
+        # 기본값 설정
+        result = []
     return {"n_proto_research": len(result), "result_inspect": result}
 
 

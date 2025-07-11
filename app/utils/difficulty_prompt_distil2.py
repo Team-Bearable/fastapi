@@ -73,16 +73,17 @@ class seteukBasicTopic:
     tip= r"""
     GOAL
     * You are a bot that generates tips according to career activity recommendations.
-    * Please explain why each of the topics generated above is suitable for activities related to 'major' and 'keyword' provide tips on how to study effectively.
-    
+    * Please explain why each of the topics generated above is suitable for activities related to 'major' and 'keyword' and provide tips on how to study effectively.
+
     Follow below steps:
     * Keep the topic as it is and write tips for each topic.
     * Each tip should be within 250 bytes.
-    * Add the tips at the end of the previously generated topics, separated by "::". Therefore, the final output should be an array in the format [topic::tip, topic::tip, topic::tip]
+    * Add the tips at the end of the previously generated topics, separated by "::". Therefore, the final output should be an array in the format ["topic::tip::keyword", "topic::tip::keyword"]
+    * Generated answer must be valid Python list format using double quotes for strings.
     * Generated answer should be in Korean without essential foreign words.
+    * Each item must be a properly escaped string and enclosed in double quotes.
 
     * Ultimately, Provide the 2~4 syllables long of retrieval keyword for each to search at google for getting information about it. they have to be related to major and topic. And add them to the end of the tips for each topic, separated by '::'.
-    * The final format should be [topic::tip::keyword, topic::tip::keyword, topic::tip::keyword].
 
     ---
     MAJOR:
@@ -294,8 +295,9 @@ class material_organizer:
         * Provide the response in Korean using polite language.
         
         IMPORTANCE:
-        * When organizing the src, ensure that all reference numbers are properly grouped within a single list. For example, if the same content is sourced from both [1] and [2], represent it as [1,2] instead of separate entries.
-
+        * When organizing the src, ensure that the `src` field is a valid Python list of integers. For example, if the same content is sourced from both [1] and [2], represent it as [1, 2] (not as a string like "[1,2]").
+        * Never wrap the `src` field in quotes — it must be a proper list object, not a string.
+        * If you can't find any source, set the src field to an empty list, like `[]` (not `"[]"`).
         ---
         MAJOR:
         교육학
@@ -326,9 +328,9 @@ class material_organizer:
         교육 기회의 불평등과 정치적 권력의 상관관계는 부모의 사회경제적 지위가 자녀의 교육 성취에 미치는 영향력이 크다는 점에서 나타난다. 한국의 교육 시스템은 고교 서열화와 특권학교의 존재로 인해 교육 불평등을 심화시키고 있다. 이러한 현상은 교육 기회의 분배가 어떠한지를 살펴보는 것이 중요하며, 교육 기회를 평등하게 제공하는 것이 중요하다.
 
         OUTPUT:
-        '[{{"topic": "학벌 사회와 고교 서열화", "content":"한국보건사회연구원은 한국의 대학 서열화와 고교 서열화가 교육 불평등을 심화시키는 과정을 분석했습니다. 연구 결과, 서울대를 중심으로 한 대학 서열화 구조가 특권학교와 사교육의 혜택을 받을 수 있는 계층에게 유리하게 작용하고 있으며, 이러한 구조는 입시 경쟁의 공정성을 저해하고 있다는 결론을 도출했습니다.", "host":"한국보건사회연구원", "src": "[1]"}},
-            {{"topic":"부모의 사회경제적 지위와 자녀의 교육 성취", "content": "한국교육과정평가원은 부모의 사회경제적 지위와 자녀의 학업 성취 간의 상관관계를 연구했습니다. 연구 결과, 부모의 소득 수준이 높을수록 자녀가 명문대에 진학할 가능성이 더 높았으며, 이는 사교육 비용과 학업 지원의 차이로 인한 것임을 확인했습니다. 특히, 부모의 교육 수준이 자녀의 교육 목표 설정에도 강한 영향을 미친다는 점이 밝혀졌습니다.", "host":"한국교육과정평가원", "src":"[1, 4]"}},
-            {{"topic":"교육 기회의 분배와 불평등", "content": "정의정책연구소는 교육 기회가 특정 계층에게 집중되는 현상이 사회적 이동성을 제한한다는 점을 연구했습니다. 연구에서는 고교 서열화가 낮은 계층 학생들의 진학 기회를 축소시키며, 이는 결국 사회적 계층 고착화로 이어진다는 점이 밝혀졌습니다. 이에 따라 고교 평준화 정책이 필요하다는 제언을 포함했습니다.", "host":"정의정책연구소", "src":"[2]"}}]'
+        '[{{"topic": "학벌 사회와 고교 서열화", "content":"한국보건사회연구원은 한국의 대학 서열화와 고교 서열화가 교육 불평등을 심화시키는 과정을 분석했습니다. 연구 결과, 서울대를 중심으로 한 대학 서열화 구조가 특권학교와 사교육의 혜택을 받을 수 있는 계층에게 유리하게 작용하고 있으며, 이러한 구조는 입시 경쟁의 공정성을 저해하고 있다는 결론을 도출했습니다.", "host":"한국보건사회연구원", "src": [1]}},
+            {{"topic":"부모의 사회경제적 지위와 자녀의 교육 성취", "content": "한국교육과정평가원은 부모의 사회경제적 지위와 자녀의 학업 성취 간의 상관관계를 연구했습니다. 연구 결과, 부모의 소득 수준이 높을수록 자녀가 명문대에 진학할 가능성이 더 높았으며, 이는 사교육 비용과 학업 지원의 차이로 인한 것임을 확인했습니다. 특히, 부모의 교육 수준이 자녀의 교육 목표 설정에도 강한 영향을 미친다는 점이 밝혀졌습니다.", "host":"한국교육과정평가원", "src":[1, 4]}},
+            {{"topic":"교육 기회의 분배와 불평등", "content": "정의정책연구소는 교육 기회가 특정 계층에게 집중되는 현상이 사회적 이동성을 제한한다는 점을 연구했습니다. 연구에서는 고교 서열화가 낮은 계층 학생들의 진학 기회를 축소시키며, 이는 결국 사회적 계층 고착화로 이어진다는 점이 밝혀졌습니다. 이에 따라 고교 평준화 정책이 필요하다는 제언을 포함했습니다.", "host":"정의정책연구소", "src":[2]}}]'
         ---
         MAJOR:
         경영학
@@ -354,9 +356,9 @@ class material_organizer:
         이러한 사례들은 주식 시장 데이터를 이용한 통계적 추정 기법을 통해 기업 가치 변동을 예측하는 데 성공적으로 활용된 예시들입니다.
 
         OUTPUT:
-        '[{{"topic": "IBES 데이터를 활용한 주가 예측","content": "Goldman Sachs는 2019년에 IBES 데이터를 활용하여 Apple의 수익이 시장 예상을 초과할 것이라고 분석했습니다. 이 분석은 Apple이 새로운 제품 출시와 더불어 글로벌 시장 점유율을 확대하고 있다는 점을 근거로 삼았습니다. 실제로 Apple의 수익은 예측대로 증가했으며, 이에 따라 주가는 단기적으로 큰 폭의 상승을 보였습니다. 유사하게, 2020년에 모건스탠리는 IBES 데이터를 통해 아마존의 수익이 기대치를 초과할 것으로 예측했습니다. 아마존의 경우, 코로나19 팬데믹 동안 온라인 쇼핑과 클라우드 서비스 수요가 급증한 점이 주요 요인으로 분석되었습니다. 이 예측은 정확했으며, 아마존 주가의 지속적인 상승으로 이어졌습니다.","host": "Goldman Sachs, 모건스탠리","src": "[1]"}},
-            {{"topic": "인공지능 기반 주가 예측","content": "University of Nebraska-Lincoln의 연구는 IBES 데이터를 활용한 인공지능 기반 분석이 전통적인 금융 데이터 분석보다 투자 성과를 높일 수 있다는 결과를 보여주었습니다. 연구에서는 IBES 데이터에 머신러닝 알고리즘을 적용하여 기업의 수익성을 예측하고 투자 의사 결정을 최적화하는 방법을 제시했습니다. 또한, Renaissance Technologies와 Two Sigma와 같은 주요 헤지펀드는 IBES 데이터를 바탕으로 독점적인 알고리즘을 개발하여 시장의 복잡한 변동성을 분석하고, 이를 통해 정교한 투자 전략을 구축한 사례로 잘 알려져 있습니다. 이러한 접근 방식은 투자 효율성과 리스크 관리를 동시에 달성하는 데 기여한 것으로 평가받습니다.","host": "University of Nebraska-Lincoln, Renaissance Technologies, Two Sigma","src": "[1]"}},
-            {{"topic": "시계열 데이터 분석 모델 활용 사례","content": "Facebook Prophet 모델은 Apple의 주식 가격 변동을 예측하기 위해 사용되었습니다. 이 모델은 계절적 패턴과 시장의 반복적인 트렌드를 효과적으로 분석할 수 있는 점이 강점으로 꼽힙니다. 연구 결과에 따르면, Prophet 모델은 6개월 이내의 주가 변동을 예측할 때 77%의 높은 정확도를 기록했습니다. 또한, LSTM(Long Short-Term Memory) 모델은 Google의 주식 가격 예측에 사용되었습니다. LSTM 모델은 시계열 데이터의 장기 의존성을 분석하는 데 강점을 가지고 있어, 과거 주가 변동과 거래량 데이터를 기반으로 20일 이내의 주가 변동을 75%의 정확도로 예측했습니다. 이 두 모델은 기업과 투자자들에게 보다 신뢰할 수 있는 예측 정보를 제공하며, 단기 및 중기 투자 전략 수립에 효과적인 도구로 자리 잡고 있습니다.","host": "no","src": "[4]"}}]'
+        '[{{"topic": "IBES 데이터를 활용한 주가 예측","content": "Goldman Sachs는 2019년에 IBES 데이터를 활용하여 Apple의 수익이 시장 예상을 초과할 것이라고 분석했습니다. 이 분석은 Apple이 새로운 제품 출시와 더불어 글로벌 시장 점유율을 확대하고 있다는 점을 근거로 삼았습니다. 실제로 Apple의 수익은 예측대로 증가했으며, 이에 따라 주가는 단기적으로 큰 폭의 상승을 보였습니다. 유사하게, 2020년에 모건스탠리는 IBES 데이터를 통해 아마존의 수익이 기대치를 초과할 것으로 예측했습니다. 아마존의 경우, 코로나19 팬데믹 동안 온라인 쇼핑과 클라우드 서비스 수요가 급증한 점이 주요 요인으로 분석되었습니다. 이 예측은 정확했으며, 아마존 주가의 지속적인 상승으로 이어졌습니다.","host": "Goldman Sachs, 모건스탠리","src": [1]}},
+            {{"topic": "인공지능 기반 주가 예측","content": "University of Nebraska-Lincoln의 연구는 IBES 데이터를 활용한 인공지능 기반 분석이 전통적인 금융 데이터 분석보다 투자 성과를 높일 수 있다는 결과를 보여주었습니다. 연구에서는 IBES 데이터에 머신러닝 알고리즘을 적용하여 기업의 수익성을 예측하고 투자 의사 결정을 최적화하는 방법을 제시했습니다. 또한, Renaissance Technologies와 Two Sigma와 같은 주요 헤지펀드는 IBES 데이터를 바탕으로 독점적인 알고리즘을 개발하여 시장의 복잡한 변동성을 분석하고, 이를 통해 정교한 투자 전략을 구축한 사례로 잘 알려져 있습니다. 이러한 접근 방식은 투자 효율성과 리스크 관리를 동시에 달성하는 데 기여한 것으로 평가받습니다.","host": "University of Nebraska-Lincoln, Renaissance Technologies, Two Sigma","src": [1]}},
+            {{"topic": "시계열 데이터 분석 모델 활용 사례","content": "Facebook Prophet 모델은 Apple의 주식 가격 변동을 예측하기 위해 사용되었습니다. 이 모델은 계절적 패턴과 시장의 반복적인 트렌드를 효과적으로 분석할 수 있는 점이 강점으로 꼽힙니다. 연구 결과에 따르면, Prophet 모델은 6개월 이내의 주가 변동을 예측할 때 77%의 높은 정확도를 기록했습니다. 또한, LSTM(Long Short-Term Memory) 모델은 Google의 주식 가격 예측에 사용되었습니다. LSTM 모델은 시계열 데이터의 장기 의존성을 분석하는 데 강점을 가지고 있어, 과거 주가 변동과 거래량 데이터를 기반으로 20일 이내의 주가 변동을 75%의 정확도로 예측했습니다. 이 두 모델은 기업과 투자자들에게 보다 신뢰할 수 있는 예측 정보를 제공하며, 단기 및 중기 투자 전략 수립에 효과적인 도구로 자리 잡고 있습니다.","host": "no","src": [4]}}]'
         ---
         MAJOR: 
         에너지공학
@@ -410,9 +412,9 @@ class material_organizer:
         이 연구들은 모두 열 에너지를 효율적으로 전기 에너지로 변환하는 데 중점을 두고 있으며, 실생활에서의 활용 사례를 분석하고 있습니다. 연구의 결과는 열 에너지의 효율적인 변환을 위한 새로운 방법을 제안하며, 에너지공학의 발전에 기여할 것으로 기대됩니다.
 
         OUTPUT:
-        '[{{"topic": "열기관과 자기장의 상호작용을 통한 에너지 변환 효율성 연구","content": "대한민국의 연구 기관에서 수행된 연구는 열기관과 전류로 인해 생성되는 자기장이 상호작용하여 열 에너지를 전기 에너지로 변환하는 과정을 분석했습니다. 이 연구는 열기관이 고온 열원으로부터 에너지를 받아 저온 저장조로 에너지를 전달하는 원리를 기반으로 자기장의 크기와 방향이 효율성에 미치는 영향을 조사했습니다. 연구 결과, 열기관의 효율성이 최대 40%까지 향상될 수 있음이 밝혀졌으며, 이는 산업용 열 에너지 변환 기술의 발전에 기여할 가능성이 높습니다.","host": "no","src": "[1]"}},
-            {{"topic": "전류에 의한 자기 작용을 활용한 에너지 변환 장치 설계","content": "한국 과학기술연구원은 전류로 인해 발생하는 자기장을 활용하여 열 에너지를 전기 에너지로 변환하는 효율적인 장치를 설계했습니다. 연구에서는 캔틸레버형 ME 복합체를 통해 자기에너지를 전기 에너지로 변환하는 방식을 제안했으며, 자왜재료와 압전재료의 조합으로 장치의 효율성을 크게 향상시켰습니다. 이 기술은 소형 발전기 제작에 활용 가능하며, 전력 수요가 낮은 가전제품이나 휴대용 기기에 적용될 수 있는 혁신적인 기술로 평가받고 있습니다.","host": "한국 과학기술원","src": "[3]"}},
-            {{"topic": "열과 전류의 상호작용 원리 연구","content": "서울대학교 물리학과 연구진은 열역학의 제2법칙과 전자기 유도를 융합하여 열 에너지를 전기 에너지로 변환하는 새로운 방식을 탐구했습니다. 연구는 양자 결맞음을 활용한 광역학 소자 개발 가능성과 열전달 효율 증대 방안에 초점을 맞췄습니다. 특히, 이 연구는 열 에너지 변환의 이론적 이해를 확장하며, 엔진 효율성 향상 및 고급 전자 소자 개발에 기여할 수 있는 중요한 기초 데이터를 제공했습니다.","host": "서울대학교 물리학과","src": "[2]"}}]'
+        '[{{"topic": "열기관과 자기장의 상호작용을 통한 에너지 변환 효율성 연구","content": "대한민국의 연구 기관에서 수행된 연구는 열기관과 전류로 인해 생성되는 자기장이 상호작용하여 열 에너지를 전기 에너지로 변환하는 과정을 분석했습니다. 이 연구는 열기관이 고온 열원으로부터 에너지를 받아 저온 저장조로 에너지를 전달하는 원리를 기반으로 자기장의 크기와 방향이 효율성에 미치는 영향을 조사했습니다. 연구 결과, 열기관의 효율성이 최대 40%까지 향상될 수 있음이 밝혀졌으며, 이는 산업용 열 에너지 변환 기술의 발전에 기여할 가능성이 높습니다.","host": "no","src": [1]}},
+            {{"topic": "전류에 의한 자기 작용을 활용한 에너지 변환 장치 설계","content": "한국 과학기술연구원은 전류로 인해 발생하는 자기장을 활용하여 열 에너지를 전기 에너지로 변환하는 효율적인 장치를 설계했습니다. 연구에서는 캔틸레버형 ME 복합체를 통해 자기에너지를 전기 에너지로 변환하는 방식을 제안했으며, 자왜재료와 압전재료의 조합으로 장치의 효율성을 크게 향상시켰습니다. 이 기술은 소형 발전기 제작에 활용 가능하며, 전력 수요가 낮은 가전제품이나 휴대용 기기에 적용될 수 있는 혁신적인 기술로 평가받고 있습니다.","host": "한국 과학기술원","src": [3]}},
+            {{"topic": "열과 전류의 상호작용 원리 연구","content": "서울대학교 물리학과 연구진은 열역학의 제2법칙과 전자기 유도를 융합하여 열 에너지를 전기 에너지로 변환하는 새로운 방식을 탐구했습니다. 연구는 양자 결맞음을 활용한 광역학 소자 개발 가능성과 열전달 효율 증대 방안에 초점을 맞췄습니다. 특히, 이 연구는 열 에너지 변환의 이론적 이해를 확장하며, 엔진 효율성 향상 및 고급 전자 소자 개발에 기여할 수 있는 중요한 기초 데이터를 제공했습니다.","host": "서울대학교 물리학과","src": [2]}}]'
         ---
         MAJOR:
         간호학
@@ -421,9 +423,9 @@ class material_organizer:
         유전자 치료가 간호학 실무에 미치는 영향: 세포 수준에서 질병 관리 사례 연구
 
         OUTPUT:
-        '[{{"topic": "삼성서울병원 세포·유전자 치료 연구소의 연구","content": "삼성서울병원 세포·유전자 치료 연구소는 불치 및 난치 질환으로 고통받는 환자들에게 새로운 치료법을 개발하기 위한 연구를 진행하고 있습니다. 이 연구소는 임상 등급의 성체 줄기세포 생산이 가능한 GMP 생산 시설을 구축하고, 전임상 및 임상 시험을 통해 유전자 치료의 실효성과 안전성을 평가하고 있습니다. 이 연구는 유전자 치료가 난치성 질환 치료에 기여할 수 있는 가능성을 제시하고 있습니다.","host": "삼성서울병원 세포·유전자 치료 연구소","src": "[3]"}},
-          {{"topic": "유전자 치료의 안전성과 효과 연구","content": "유전자 치료의 안전성과 효과를 평가하기 위한 연구는 유전자 치료 임상 시험이 시작된 1989년 이후로 꾸준히 진행되고 있습니다. 특히, 2012년 글리베라(Glybera)의 허가는 유전자 치료의 안전성 문제를 해결하는 데 중요한 전환점이 되었습니다. 이러한 연구는 유전자 치료의 임상 적용 가능성을 높이고, 환자 치료에 대한 새로운 접근 방식을 모색하는 데 기여하고 있습니다.","host": "no","src": "[2]"}},
-          {{"topic": "충남대학교 의과대학의 연구","content": "충남대학교 의과대학의 이혜미 교수는 유전자 치료의 연구 동향을 분석하고 있습니다. 이 연구는 유전자 치료가 개인 맞춤형 의료를 제공할 수 있는 가능성을 열어주며, 환자 교육과 심리적 지원의 중요성을 강조하고 있습니다. 또한, 유전자 치료가 질병 관리의 효과를 높일 수 있는 방법을 탐색하고 있습니다.","host": "충남대학교 의과대학","src": "[2, 3]"}}]'
+        '[{{"topic": "삼성서울병원 세포·유전자 치료 연구소의 연구","content": "삼성서울병원 세포·유전자 치료 연구소는 불치 및 난치 질환으로 고통받는 환자들에게 새로운 치료법을 개발하기 위한 연구를 진행하고 있습니다. 이 연구소는 임상 등급의 성체 줄기세포 생산이 가능한 GMP 생산 시설을 구축하고, 전임상 및 임상 시험을 통해 유전자 치료의 실효성과 안전성을 평가하고 있습니다. 이 연구는 유전자 치료가 난치성 질환 치료에 기여할 수 있는 가능성을 제시하고 있습니다.","host": "삼성서울병원 세포·유전자 치료 연구소","src": [3]}},
+          {{"topic": "유전자 치료의 안전성과 효과 연구","content": "유전자 치료의 안전성과 효과를 평가하기 위한 연구는 유전자 치료 임상 시험이 시작된 1989년 이후로 꾸준히 진행되고 있습니다. 특히, 2012년 글리베라(Glybera)의 허가는 유전자 치료의 안전성 문제를 해결하는 데 중요한 전환점이 되었습니다. 이러한 연구는 유전자 치료의 임상 적용 가능성을 높이고, 환자 치료에 대한 새로운 접근 방식을 모색하는 데 기여하고 있습니다.","host": "no","src": [2]}},
+          {{"topic": "충남대학교 의과대학의 연구","content": "충남대학교 의과대학의 이혜미 교수는 유전자 치료의 연구 동향을 분석하고 있습니다. 이 연구는 유전자 치료가 개인 맞춤형 의료를 제공할 수 있는 가능성을 열어주며, 환자 교육과 심리적 지원의 중요성을 강조하고 있습니다. 또한, 유전자 치료가 질병 관리의 효과를 높일 수 있는 방법을 탐색하고 있습니다.","host": "충남대학교 의과대학","src": [2, 3]}}]'
 
     """
     human = r"""

@@ -50,7 +50,7 @@ def perplexity(state):
     while True:
         try:
             case = llm_material_organizer(major, topic, case_result, gpt4o, state
-) 
+)
             json_case = perple_process_result(case)
             break
         except Exception as e:
@@ -63,17 +63,17 @@ def perplexity(state):
     case_study_str = "<<<관련 사례>>>\n"
     if len(case_study) > 0:
         for i in case_study:
-            if i['src'] != 'no':
+            if i['src']:
                 print('펄플i', i)
                 case_study_str +=f"""
     * 사례: {i['topic']}
     * 내용: {i['content']}
     * 진행 기관: {i['host']}
-    * 관련 자료 링크: {[citations[ii-1] for ii in eval(i['src'])]}
+    * 관련 자료 링크: {[citations[ii-1] for ii in i['src']]}
     """        
                 reference_news.append({'title': i['topic'],
                                     'institute': i['host'],
-                                    'url': [citations[ii-1] for ii in eval(i['src'])][0],
+                                    'url': [citations[ii-1] for ii in i['src']][0],
                                     'date':None})
     else:
         case_study_str = ""
@@ -85,11 +85,11 @@ def perplexity(state):
                 applied_study_str +=f"""
     * 주제: {i['topic']}
     * 내용: {i['content']}
-    * 관련 자료: {[citations[ii-1] for ii in eval(i['src'])]}
+    * 관련 자료: {[citations[ii-1] for ii in i['src']]}
     """        
                 reference_news.append({'title': i['topic'],
                                     'institute': '응용탐구',
-                                    'url': [citations[ii-1] for ii in eval(i['src'])][0],
+                                    'url': [citations[ii-1] for ii in i['src']][0],
                                     'date':None})
     else:
         applied_study_str = ""
