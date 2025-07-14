@@ -81,7 +81,7 @@ def perplexity(state):
     applied_study_str = "<<<응용 탐구>>>\n"
     if len(applied_study) > 0:
         for i in applied_study:
-            if i['src'] != 'no':
+            if i['src']:
                 applied_study_str +=f"""
     * 주제: {i['topic']}
     * 내용: {i['content']}
