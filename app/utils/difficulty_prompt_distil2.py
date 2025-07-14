@@ -78,12 +78,18 @@ class seteukBasicTopic:
     Follow below steps:
     * Keep the topic as it is and write tips for each topic.
     * Each tip should be within 250 bytes.
-    * Add the tips at the end of the previously generated topics, separated by "::". Therefore, the final output should be an array in the format ["topic::tip::keyword", "topic::tip::keyword"]
-    * Generated answer must be valid Python list format using double quotes for strings.
-    * Generated answer should be in Korean without essential foreign words.
-    * Each item must be a properly escaped string and enclosed in double quotes.
+    * Add the tips at the end of the previously generated topics, separated by "::".
+    * Then add a 2~4 syllables long **retrieval keyword** that matches both the 'major' and topic. Add this at the end of each tip with another '::' separator.
+    * Therefore, the final output must be in the format: ["topic::tip::keyword", "topic::tip::keyword"]
 
-    * Ultimately, Provide the 2~4 syllables long of retrieval keyword for each to search at google for getting information about it. they have to be related to major and topic. And add them to the end of the tips for each topic, separated by '::'.
+    ⚠️ OUTPUT RULES (must follow strictly):
+    - Output must always be a valid Python list of strings using **double quotes** for strings and brackets.
+    - Each item in the list must be a string formatted as `"topic::tip::keyword"`.
+    - Escape all internal quotes or special characters correctly.
+    - Do not wrap the entire output in a single string; it must be an actual list.
+
+    OUTPUT FORMAT EXAMPLE (must follow this structure):
+    ["주제1::학습팁1::키워드1", "주제2::학습팁2::키워드2", "주제3::학습팁3::키워드3"]
 
     ---
     MAJOR:
@@ -93,45 +99,14 @@ class seteukBasicTopic:
     경기변동
 
     GENERATED TOPICS:
-    '["경기변동의 기본 개념과 주요 지표 분석: GDP, 실업률, 물가상승률을 중심으로",
-    "경기변동 사이클의 4단계(확장, 정점, 수축, 저점)에 대한 이해와 각 단계의 특징 설명",
-    "역사적 사례를 통한 경기변동 이해: 1929년 대공황과 2008년 금융위기의 원인과 영향 비교"]'
-
-    OUTPUT:
-    '["경기변동의 기본 개념과 주요 지표 분석: GDP, 실업률, 물가상승률을 중심으로::각 지표의 정의와 계산 방법을 먼저 이해하세요. 실제 데이터를 활용해 지표 간 상관관계를 분석해보고, 경제 뉴스를 통해 지표 변화가 실제 경제에 미치는 영향을 관찰하세요.::경제지표",
-    "경기변동 사이클의 4단계(확장, 정점, 수축, 저점)에 대한 이해와 각 단계의 특징 설명::각 단계의 특징을 표로 정리하여 비교해보세요. 실제 경제 데이터를 사용해 과거의 경기 사이클을 그래프로 그려보고, 각 단계가 어떻게 나타나는지 시각화해보세요.::경기순환",
-    "역사적 사례를 통한 경기변동 이해: 1929년 대공황과 2008년 금융위기의 원인과 영향 비교::두 사례의 원인, 전개 과정, 영향을 표로 정리하여 비교해보세요. 각 위기 전후의 경제 지표 변화를 그래프로 그려 분석해보세요. 당시의 신문 기사나 경제 보고서를 읽어 시대적 맥락을 이해하고, 현대의 경제 위기와 어떤 유사점과 차이점이 있는지 고찰해보세요.::경제위기"]'
-
-    
-    ---
-    MAJOR:
-    경제학
-
-    KEYWORD:
-    경기변동
-
-    GENERATED TOPICS:
-    '["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로",
+    ["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로",
     "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구",
-    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구"]'
+    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구"]
 
     OUTPUT:
-    '["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로::각 기관의 주요 업무와 역할을 표로 정리하세요. 실제 금융 상품 사례를 조사하여 각 기관이 어떻게 연계되는지 파악하세요.::금융기관",
+    ["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로::각 기관의 주요 업무와 역할을 표로 정리하세요. 실제 금융 상품 사례를 조사하여 각 기관이 어떻게 연계되는지 파악하세요.::금융기관",
     "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구::두 시장의 특성, 거래 방식, 위험성, 수익률 등을 비교 표로 만들어보세요. 실제 주가와 채권 수익률 데이터를 사용해 그래프를 그리고 추세를 분석해보세요. ::증권시장",
-    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구::과거 기준금리 변동 사례를 조사하고, 그에 따른 시장 반응을 정리해보세요. 금리 변동 전후의 주요 경제 지표 변화를 그래프로 그려 분석해보세요.::통화정책"]'
-
-
-    ---
-    MAJOR:
-    {major}
-
-    KEYWORD:
-    {keyword}
-
-    GENERATED TOPICS:
-    {topics}
-
-    OUTPUT:
+    "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구::과거 기준금리 변동 사례를 조사하고, 그에 따른 시장 반응을 정리해보세요. 금리 변동 전후의 주요 경제 지표 변화를 그래프로 그려 분석해보세요.::통화정책"]
     """
 
 class seteukBasicProto:
