@@ -87,6 +87,7 @@ class seteukBasicTopic:
     - Each item in the list must be a string formatted as `"topic::tip::keyword"`.
     - Escape all internal quotes or special characters correctly.
     - Do not wrap the entire output in a single string; it must be an actual list.
+    - Do not insert line breaks between list items.
 
     OUTPUT FORMAT EXAMPLE (must follow this structure):
     ["주제1::학습팁1::키워드1", "주제2::학습팁2::키워드2", "주제3::학습팁3::키워드3"]
