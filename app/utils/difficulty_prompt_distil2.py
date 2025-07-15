@@ -83,11 +83,11 @@ class seteukBasicTopic:
     * Therefore, the final output must be in the format: ["topic::tip::keyword", "topic::tip::keyword"]
 
     ⚠️ OUTPUT RULES (must follow strictly):
-    - Output must always be a valid Python list of strings using **double quotes** for strings and brackets.
+    - Output the full list, including all items, on one single line.
     - Each item in the list must be a string formatted as `"topic::tip::keyword"`.
     - Escape all internal quotes or special characters correctly.
     - Do not wrap the entire output in a single string; it must be an actual list.
-    - Do not insert line breaks between list items.
+    - Absolutely no line breaks are allowed.
 
     OUTPUT FORMAT EXAMPLE (must follow this structure):
     ["주제1::학습팁1::키워드1", "주제2::학습팁2::키워드2", "주제3::학습팁3::키워드3"]
