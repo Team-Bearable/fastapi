@@ -10,21 +10,24 @@ class seteukBasicTopic:
     * The three topics must be different. Should make various topics.
 
     DIFFICULTY
-    * Ensure that the research topic is at a level where high school students can conduct research individually.
-    * Since high school students may find it challenging to conduct extensive experiments or large-scale investigations directly, create activities that allow them to "study from a theoretical perspective, starting with theoretical exploration and understanding the principles, and then applying this knowledge in a structured manner."
-    * Therefore, ensure that the projects are not too difficult or large in scale.
+    * Ensure that the research topic is at a level where middle-high school students can conduct research individually.
+    * Since middle-high school students may find it challenging to conduct extensive experiments or large-scale investigations directly, create activities that allow them to "study from a theoretical perspective, starting with theoretical exploration and understanding the principles, and then applying this knowledge in a structured manner."
+    * Therefore, ensure that the projects are not too difficult or large in scale. 
 
     DEPTH IN DETAIL
     [Basic (Fundamental Concept Exploration Stage)]  
-    - Concept-Centered: This stage focuses on exploring fundamental concepts and principles taught in textbooks.  
+    - Concept-Centered: This stage focuses on exploring fundamental concepts and principles taught in textbooks but in middle school student friendly way.  
     - Simple Analysis: Organizes concepts and conducts basic experiments or calculations.  
     - One-Way Approach: Accepts and explains existing theories without modification.  
     - Easy-to-Access Materials: Utilizes general internet sources and textbooks for reference.  
+    - The topic must absolutely not go beyond the concepts taught in the middle school curriculum.
+    - The research topic should be easy and specific. And each topic should consist of roughly 30% major-related concepts and 70% school subject-related (INPUT : keyword) concepts.
 
     Examples:  
-    * Chemistry × Nursing: "Principle of acid-base neutralization reaction in antacids for excess stomach acid."  
-    * East Asian History × Korean Literature: "Historical events and their significance in Joseon-era literary works."  
-    * Materials Engineering × Trigonometry: "Geometric analysis of crystal structures using trigonometry."  
+    * Big Data × Mathematics: "Using graphs to find the most popular snack at the school store."
+    * Medicine × Science: "Exploring the relationship between heart rate and exercise intensity."
+    * Environmental Engineering × Earth Science: "Why air pollution levels drop on rainy days."
+    * Psychology × Social Studies: "How the way we speak affects others' emotions."
 
 
     [Applied (Real-World Problem-Solving Stage)]  
@@ -63,14 +66,14 @@ class seteukBasicTopic:
 
     """
 
-    human= r"""
+    human = r"""
     major: {major}
     keyword: {keyword}
     depth: {seteuk_depth}
-    
+
     OUTPUT:
     """
-    tip= r"""
+    tip = r"""
     GOAL
     * You are a bot that generates tips according to career activity recommendations.
     * Please explain why each of the topics generated above is suitable for activities related to 'major' and 'keyword' and provide tips on how to study effectively.
@@ -104,7 +107,7 @@ class seteukBasicTopic:
 
     OUTPUT:
     ["금융시장의 기본 구조와 주요 참여자들의 역할 분석: 은행, 증권사, 보험사를 중심으로::각 기관의 주요 업무와 역할을 표로 정리하세요. 실제 금융 상품 사례를 조사하여 각 기관이 어떻게 연계되는지 파악하세요.::금융기관", "주식시장과 채권시장의 기본 원리 비교: 각 시장의 특성과 경제적 기능 탐구::두 시장의 특성, 거래 방식, 위험성, 수익률 등을 비교 표로 만들어보세요. 실제 주가와 채권 수익률 데이터를 사용해 그래프를 그리고 추세를 분석해보세요. ::증권시장", "중앙은행의 통화정책이 금융시장에 미치는 영향: 기준금리 변동을 중심으로 한 사례 연구::과거 기준금리 변동 사례를 조사하고, 그에 따른 시장 반응을 정리해보세요. 금리 변동 전후의 주요 경제 지표 변화를 그래프로 그려 분석해보세요.::통화정책"]
-    
+
     ---
     MAJOR:
     {major}
@@ -118,13 +121,14 @@ class seteukBasicTopic:
     OUTPUT:
     """
 
+
 class seteukBasicProto:
-  system= r"""
+    system = r"""
   GOAL:
   * As an AI specialized in assisting high school students with curriculum exploration activities, help the high school student who has a keen interest in 'major' and is currently studying subject
   * A high school student interested in 'major' is preparing to write a research report.
   * provide guidelines for writing a research report with topic and major 
-  
+
   CONTENT FORMAT:
   * Should be devided into 3 parts as 'introduction', 'body', 'conclusion'
   * put the subtopic in '<<<>>>' and put the context after '\\n* ' and put the next subtopic in '<<<>>>' after '\\n\\n'
@@ -138,7 +142,7 @@ class seteukBasicProto:
     - Motivation for Topic Selection<<<주제 선정 동기>>> -> Explain why this topic, linked with the '{keyword}', is beneficial for activities related to the '{major}', and specify how these activities can enhance certain skills and competencies necessary for the '{major}'.
     - Purpose of Writing the Report<<<보고서 목적>>> -> Specifically describe how the content of the report will be used in connection with the motivation for topic selection described above.
 
-  
+
   Body Part:
   * Provide detailed contents of introduction's guidance
   * Provide guidance for conducting research or analysis activities related to fundamental theoretical knowledge concerning the topic.
@@ -147,7 +151,8 @@ class seteukBasicProto:
   * Details
     - Concept Exploration<<<개념 탐구>>> -> Explain the key theoretical concepts discussed in the topic using bullet points. And provide detailed learning information about the key theoretical concepts discussed in the introduction.
       * Explain the concepts related to the given keyword and major.  
-      * If certain concepts appear difficult to understand, provide additional explanations for clarity.  
+      * If certain concepts appear difficult to understand, provide additional explanations for clarity.
+      *  If {seteuk_depth} is "Basic", limit all content to high school textbook-level concepts only, focusing on theoretical understanding rather than any experimental or data-driven exploration.
     - Main Activities <<<주요 활동>>> -> Provide a detailed, step-by-step description of the activity or experiment. First, present the title of each activity, followed by a detailed explanation of its methods and procedures. Each activity should have an overarching goal or main theme, and to achieve this, it should be broken down into specific procedural steps. Do not select several different 
       * Do not list multiple inquiry activities; instead, select one activity and describe its procedure in detail. 
       * If the activity is too simple and does not contribute effectively to learning, modify it into a relevant research activity and provide detailed procedural steps for conducting it.  
@@ -174,7 +179,7 @@ class seteukBasicProto:
     '{{"introduction": "contexts",
        "body": "contexts",
        "conclusion": "contexts"}}'
-  
+
   IMPORTANT:
   * Consider the difficulty level when writing exploration activities. Although this has already been taken into account in the topic selection, the specific details and objectives of activities such as research or experiments (especially in the Body part) must be appropriately adjusted to match the difficulty level. for the point of difficulty level, refer to below detail of each depth
   * [Basic (Fundamental Concept Exploration Stage)]  
@@ -192,13 +197,19 @@ class seteukBasicProto:
     - Hypothesis Setting & Verification: Designs research and conducts paper-level analysis.  
     - Critical Analysis: Evaluates existing theories and presents new perspectives.  
     - Utilizing Advanced Resources: Uses academic papers, experimental data, and advanced analysis tools.
+  * [SPECIAL RESTRICTION FOR BASIC LEVEL]:
+    - If {seteuk_depth} is "Basic", the content must absolutely not go beyond the level of the Korean high school curriculum.
+    - All explanations, examples, and activities must strictly remain within the core concepts taught in the Korean high school curriculum.
+    - Avoid any advanced topics, university-level theories, or experimental methods beyond what is taught in the national high school curriculum.
+    - Focus entirely on understanding and organizing fundamental textbook concepts and principles.
+    - The report must resemble the level of a theoretical exploration suitable for students around Korean Grade 10 (예비고1~고1 수준).
 
   CONTEXT:
   keyword: 이차함수
   major: 컴퓨터공학
   seteuk_depth: Basic
   topic: 이차함수를 이용한 간단한 물리 엔진 시뮬레이션: 포물선 운동의 기초 프로그래밍
-  
+
   OUTPUT:
   {{"introduction": "<<<주제 선정 동기>>>\\n* 이차함수는 수학에서 기본적인 개념이지만, 컴퓨터공학과 물리학에서도 중요한 역할을 합니다.\\n* 포물선 운동은 중력의 영향을 받는 물체의 움직임을 설명하는 기초적인 물리 개념이며, 게임 개발 및 그래픽 프로그래밍에서도 활용됩니다.\\n* 본 연구에서는 이차함수를 활용하여 간단한 물리 엔진 시뮬레이션을 구현하고, 이를 통해 컴퓨터공학에서 수학이 어떻게 적용되는지를 탐구하고자 합니다.\\n* 이를 통해 프로그래밍을 이용한 물리 시뮬레이션의 기본 개념을 익히고, 이차함수의 실질적인 응용 사례를 학습할 수 있습니다.\\n\\n<<<보고서 목적>>>\\n* 이차함수의 개념과 포물선 운동의 기본 원리를 정리합니다.\\n* 이를 바탕으로 간단한 물리 엔진을 구현하고, 프로그래밍을 통해 포물선 운동을 시뮬레이션하는 방법을 탐구합니다.\\n* 물체의 운동을 수식으로 표현하고, 이를 코드로 변환하는 과정을 학습하여, 수학적 개념을 컴퓨터 공학에서 어떻게 활용할 수 있는지를 이해합니다.\\n* 최종적으로, 이차함수를 이용한 시뮬레이션이 게임 개발 및 그래픽 프로그래밍에서 어떻게 활용될 수 있는지를 연구합니다.",
      "body": "<<<이차함수와 포물선 운동의 개념>>>\\n* 이차함수 개념\\n  - 이차함수의 일반적인 형태: y = ax² + bx + c\\n  - 이차함수의 그래프는 포물선의 형태를 가짐\\n  - 중력의 영향을 받는 물체의 운동은 이차함수로 표현 가능\\n* 포물선 운동의 원리\\n  - 물체가 초기 속도로 발사될 때 수평 및 수직 방향으로 분리하여 운동 분석\\n  - 중력의 영향으로 인해 물체의 수직 속도가 시간에 따라 변함\\n  - 수평 방향은 등속 운동, 수직 방향은 등가속 운동으로 계산 가능\\n\\n<<<기본적인 물리 엔진 설계>>>\\n* 간단한 물리 시뮬레이션을 위한 가정\\n  - 공기 저항을 고려하지 않은 이상적인 포물선 운동 모델 적용\\n  - 초기 속도, 발사 각도를 입력값으로 설정하여 계산 수행\\n* 포물선 운동 수식 정리\\n  - x(t) = v₀ * cos(θ) * t\\n  - y(t) = v₀ * sin(θ) * t - (1/2) * g * t²\\n* 프로그래밍을 이용한 시뮬레이션 구현\\n  - Python을 활용하여 포물선 운동을 그래픽으로 표현\\n  - `matplotlib`을 이용하여 물체의 궤적을 시각화\\n  - 사용자 입력을 받아 초기 속도와 발사 각도를 설정할 수 있도록 설계\\n\\n<<<포물선 운동 시뮬레이션 코드 작성>>>\\n* Python을 활용한 기본적인 코드 예제\\n  - 초기 속도 및 발사 각도를 설정하여 포물선 궤적을 계산\\n  - 반복문을 활용하여 시간 변화에 따른 좌표값 업데이트\\n  - `matplotlib`을 이용하여 물체의 궤적을 그래프로 출력\\n* 시뮬레이션 결과 분석\\n  - 초기 속도와 발사 각도를 조절하여 운동 경로의 변화를 확인\\n  - 중력 가속도(g) 값 변경 시 포물선의 형태 변화 비교\\n\\n<<<응용 가능성 탐구>>>\\n* 게임 개발에서의 활용\\n  - 2D 게임에서 물체의 투사체 궤적을 계산하는 데 사용 가능\\n  - 캐릭터 점프 및 중력 효과를 구현할 때 활용\\n* 그래픽 시뮬레이션에서의 활용\\n  - 애니메이션 제작 시 물체의 자연스러운 움직임을 표현\\n  - 물리 기반 렌더링 및 시뮬레이션 엔진 개발의 기초 개념", 
@@ -232,18 +243,16 @@ class seteukBasicProto:
   {{"introduction": "<<<주제 선정 동기>>>\\n* 양자 컴퓨팅은 기존의 고전적 컴퓨팅과는 다른 계산 방식으로, 복잡한 연산을 보다 빠르게 수행할 수 있는 혁신적인 기술입니다.\\n* 양자 회로의 최적화와 오류 보정은 양자 컴퓨팅의 실용화를 위한 핵심 연구 분야입니다.\\n* 이차함수는 양자 게이트 설계와 오류 보정 알고리즘에서 중요한 역할을 하며, 이를 수학적으로 모델링하는 것이 필수적입니다.\\n* 본 연구에서는 **양자 회로 설계 및 오류 보정 알고리즘에서 이차함수가 어떻게 활용되는지**를 분석하고, 최적화 기법을 이론적으로 탐구하고자 합니다.\\n\\n<<<보고서 목적>>>\\n* 양자 회로 설계에서 이차함수 기반 최적화 기법을 탐색하고, 기존 알고리즘과 비교하여 성능을 분석합니다.\\n* 양자 오류 보정 알고리즘에서 이차함수를 활용하는 방법을 연구하고, 오류 확률을 줄이기 위한 수학적 모델을 개발합니다.\\n* 고전적 알고리즘과 비교하여 양자 컴퓨팅에서 이차함수 기반 최적화가 가지는 장점을 검토하고, 실용적인 응용 가능성을 분석합니다.\\n* 연구 결과를 바탕으로 양자 게이트 최적화 및 오류 보정 전략을 개선하는 새로운 방법론을 제안합니다.","body": "<<<양자 회로 최적화에서의 이차함수 활용>>>\\n* 양자 회로 최적화의 필요성\\n  - 양자 컴퓨터는 기존 컴퓨터보다 계산력이 뛰어나지만, 오류에 취약하고 최적화가 필요함\\n  - 연산 효율성을 높이기 위해 양자 게이트 수를 최소화하는 알고리즘 연구가 필수\\n  - 이차함수를 이용하여 게이트 연산 비용을 수학적으로 최적화할 수 있음\\n* 이차함수를 활용한 양자 게이트 배치 최적화\\n  - 회로의 연산 비용을 최소화하는 수학적 모델링\\n  - 대표적인 양자 알고리즘(Grover, Shor)의 게이트 수를 줄이는 방법 탐구\\n  - 이차 비용 함수(quadratic cost function)를 적용한 최적 경로 탐색 알고리즘\\n\\n<<<양자 오류 보정 알고리즘에서의 이차함수 응용>>>\\n* 양자 오류 보정의 중요성\\n  - 양자 비트(Qubit)는 환경 노이즈에 의해 쉽게 오류가 발생함\\n  - 오류 확률을 줄이기 위한 알고리즘이 필수적이며, 이 과정에서 이차함수 기반 수학적 최적화 기법이 활용됨\\n* 이차 최적화 함수 적용 사례\\n  - 오류 확률을 최소화하는 양자 상태 모델링\\n  - 오류 보정 코드(QECC, Quantum Error Correction Code)에서 이차 비용 함수를 활용한 보정 알고리즘 최적화\\n  - 양자 정보 이론에서 사용하는 Hamming Distance 및 Fidelity 함수의 이차적 성질 분석\\n\\n<<<이론적 분석 및 실험 설계>>>\\n* 기존 연구 비교\\n  - 기존의 양자 회로 최적화 및 오류 보정 기법 분석\\n  - 이차함수 기반 모델과 기존 알고리즘(디지털 교정법, 표준 오류 보정 코드) 비교\\n* 실험 설계 및 검증 방법\\n  - 시뮬레이터(Qiskit, Cirq)를 활용한 양자 회로 최적화 실험\\n  - 다양한 환경에서의 오류 확률 및 보정 효율 비교\\n  - 실험 데이터를 통해 최적의 이차 비용 함수 파라미터 도출","conclusion": "<<<활동/연구 요약>>>\\n* 본 연구에서는 양자 회로 설계와 오류 보정 알고리즘에서 이차함수가 어떻게 활용될 수 있는지 이론적으로 분석하였습니다.\\n* 이차 비용 함수(quadratic cost function)를 활용하여 양자 게이트 최적화를 수행할 수 있음을 확인하였습니다.\\n* 오류 보정 알고리즘에서 이차 비용 함수가 오류 확률을 줄이는 데 효과적임을 실험적으로 분석하였습니다.\\n\\n<<<추후 연구 계획>>>\\n* 실험적으로 검증된 이차 최적화 기법을 보다 다양한 양자 알고리즘에 적용\\n* 양자 기계 학습(Quantum Machine Learning)에서 이차함수를 활용한 최적화 연구\\n* 노이즈가 높은 환경에서도 최적의 양자 게이트 배치를 찾는 알고리즘 개발\\n* 하드웨어 수준에서 이차함수를 활용한 양자 칩 설계 최적화 연구\\n\\n<<<미래 전망>>>\\n* 양자 컴퓨팅이 실용화되면서 회로 최적화 및 오류 보정 연구는 더욱 중요해질 것입니다.\\n* 이차함수 기반 최적화 기법은 양자 컴퓨팅의 성능을 향상시키는 핵심 요소가 될 것입니다.\\n* 향후 연구에서는 양자 알고리즘, 머신러닝, 최적화 기법이 결합되어 더욱 강력한 연산 모델이 개발될 가능성이 높습니다."}}
 
   """
-  human= r"""
+    human = r"""
 
   CONTEXT:
   keyword: {keyword}
   major: {major}
   topic: {topic}
-  
+
   OUTPUT:"""
 
 
-
-  
 class perplexity_prompt():
     def __init__(self, topic):
         self.system = r"""
@@ -263,6 +272,7 @@ class perplexity_prompt():
             {topic}
             """
 
+
 class material_organizer:
     system = r"""
         GOAL:
@@ -277,7 +287,7 @@ class material_organizer:
         * Organize and document the findings accordingly.
         * When extracting content, generate as detailed and accurate information as possible. 
         * Provide the response in Korean using polite language.
-        
+
         IMPORTANCE:
         * When organizing the src, ensure that the `src` field is a valid Python list of integers. For example, if the same content is sourced from both [1] and [2], represent it as [1, 2] (not as a string like "[1,2]").
         * Never wrap the `src` field in quotes — it must be a proper list object, not a string.
@@ -290,7 +300,7 @@ class material_organizer:
         교육 기회의 불평등과 정치적 권력의 상관관계: 이론적 접근과 실제 사례 분석
 
         CONTENT:
-        
+
         ### 교육 기회의 불평등과 정치적 권력의 상관관계: 이론적 접근과 실제 사례 분석
 
         #### 1. **교육 불평등의 이론적 접근**
@@ -318,7 +328,7 @@ class material_organizer:
         ---
         MAJOR:
         경영학
-                            
+
         TOPIC:
         재무 분석의 통계적 추정 기법이 기업의 주가 예측에 미치는 영향 연구
 
@@ -418,13 +428,13 @@ class material_organizer:
 
     CONTEXT:
     {context}
-    
+
     OUTPUT:
     """
 
 
 class seteukBasicBodyTop:
-  system = r"""
+    system = r"""
   GOAL:
   * You are a bot that supplements the body of the essay.
   * You have to check the 'prototype' and 'essay topic' to know
@@ -436,7 +446,7 @@ class seteukBasicBodyTop:
   Concept Exploration Part
   * Fill in any missing parts of the concept explanations, and if there are any terms that lack detail, provide more detailed descriptions.
   * If there are theoretical aspects involved and there's no explain for terminology, add explanation for the concepts and principles of them.
-  
+
   Experiment or Activities part
   * Provide detailed procedures for conducting the research methods and elaborating on the research content outlined in the given body.
   * For inquiry activities, ensure that the research methods are at a level that high school students can conduct. Provide a step-by-step guide from preparation to procedures in a clear and sequential manner.
@@ -545,9 +555,9 @@ class seteukBasicBodyTop:
 
   """
 
-  human= r"""
+    human = r"""
   {context}
-  
+
   major:  {major}
   keyword: {keyword}
   difficulty level: {seteuk_depth}
@@ -558,7 +568,7 @@ class seteukBasicBodyTop:
 
 
 class seteukBasicIntroduction:
-  system = r"""
+    system = r"""
     GOAL:  
     * You are a writing expert who provides guidance for composing the introduction of a high school student's career exploration essay.  
     * You must check 'proto' and 'topic' to understand the content.  
@@ -614,7 +624,7 @@ class seteukBasicIntroduction:
     topic: 식물 줄기세포의 분화 과정에서 나타나는 전사인자 네트워크 분석: 단일세포 RNA 시퀀싱 기술을 활용한 시간별 유전자 발현 프로파일링
     difficulty level: Advanced
     proto: {{'introduction': '<<<주제 선정 동기>>>\\\\n* 식물 줄기세포의 분화 과정은 식물의 성장과 발달에 핵심적인 역할을 하며, 이를 이해하는 것은 식물과학 분야에서 매우 중요합니다.\\\\n* 전사인자 네트워크는 유전자 발현을 조절하는 핵심 메커니즘으로, 줄기세포 분화 과정의 분자적 기작을 이해하는 데 필수적입니다.\\\\n* 단일세포 RNA 시퀀싱 기술의 발전으로 개별 세포 수준에서의 유전자 발현 분석이 가능해져, 더욱 정밀한 시간별 발현 프로파일링이 가능해졌습니다.\\\\n* 이 연구는 식물 줄기세포의 분화 과정을 분자 수준에서 이해하고, 이를 통해 작물 개량이나 식물 바이오테크놀로지 분야에 새로운 통찰을 제공할 수 있습니다.\\\\n\\\\n<<<보고서 목적>>>\\\\n* 식물 줄기세포의 분화 과정에서 나타나는 전사인자 네트워크의 동적 변화를 시간별로 분석합니다.\\\\n* 단일세포 RNA 시퀀싱 기술을 활용하여 개별 세포 수준에서의 유전자 발현 패턴을 프로파일링합니다.\\\\n* 시간에 따른 전사인자 발현 변화와 그들 간의 상호작용 네트워크를 구축하고 분석합니다.\\\\n* 이를 통해 식물 줄기세포의 분화를 조절하는 핵심 전사인자와 그들의 작용 기작을 규명하고자 합니다.\\\\n* 최종적으로, 이 연구 결과가 식물의 발달 과정 이해와 작물 개량에 어떻게 응용될 수 있는지 제시하고자 합니다.', 'body': '<<<개념 탐구>>>\\\\n* 식물 줄기세포 (Plant stem cells)\\\\n  - 정의: 자가 재생 능력과 다양한 세포 유형으로 분화할 수 있는 능력을 가진 미분화 세포\\\\n  - 위치: 주로 식물의 생장점(meristem)에 존재\\\\n  - 기능: 식물의 지속적인 성장과 새로운 조직 형성에 필수적\\\\n* 전사인자 (Transcription factors)\\\\n  - 정의: DNA에 특이적으로 결합하여 유전자 발현을 조절하는 단백질\\\\n  - 기능: 유전자 발현의 활성화 또는 억제를 통해 세포의 운명과 기능을 결정\\\\n* 단일세포 RNA 시퀀싱 (Single-cell RNA sequencing)\\\\n  - 정의: 개별 세포 수준에서 전체 전사체를 분석하는 기술\\\\n  - 장점: 세포 간 이질성 파악 가능, 희귀 세포 유형 식별, 시간에 따른 세포 상태 변화 추적 가능\\\\n\\\\n<<<주요 활동>>>\\\\n<<<실험 설계 및 샘플 준비>>>\\\\n* 모델 식물 선정 (예: 애기장대, Arabidopsis thaliana)\\\\n* 줄기세포 분리 및 시간별 샘플링 계획 수립\\\\n* 단일세포 현탁액 제조 및 품질 검사\\\\n\\\\n<<<단일세포 RNA 시퀀싱 수행>>>\\\\n* 단일세포 포획 및 barcoding\\\\n* cDNA 합성 및 라이브러리 제작\\\\n* 고처리량 시퀀싱 수행\\\\n\\\\n<<<데이터 분석 및 전사인자 네트워크 구축>>>\\\\n* 시퀀싱 데이터 전처리 및 품질 관리\\\\n* 유전자 발현 정량화 및 정규화\\\\n* 차원 축소 및 클러스터링 분석\\\\n* 시간에 따른 유전자 발현 변화 분석\\\\n* 전사인자 발현 패턴 분석 및 네트워크 구축\\\\n* 네트워크 동적 변화 분석\\\\n\\\\n<<<결과 해석 및 생물학적 의미 도출>>>\\\\n* 핵심 전사인자 식별 및 기능 예측\\\\n* 전사인자 간 상호작용 네트워크 해석\\\\n* 줄기세포 분화 과정의 분자적 메커니즘 제안\\\\n\\\\n<<<대체 실험: 식물 조직 배양을 통한 줄기세포 분화 관찰>>>\\\\n* 재료: 애기장대 씨앗, MS 배지, 호르몬 (옥신, 사이토키닌), 멸균 도구\\\\n* 방법:\\\\n  1. 애기장대 씨앗 표면 살균 및 MS 배지에 파종\\\\n  2. 7일간 생장 후, 어린 식물체에서 잎 조직 절편 준비\\\\n  3. 다양한 호르몬 조합의 배지에 잎 절편 배양\\\\n  4. 7일 간격으로 30일간 조직의 변화 관찰 및 기록\\\\n  5. 형성된 캘러스와 신초의 형태학적 특징 분석\\\\n* 분석: 호르몬 조합에 따른 줄기세포 유도 및 분화 패턴 비교, 분화 과정의 주요 단계 식별', 'conclusion': '<<<활동/연구 요약>>>\\\\n* 본 연구를 통해 식물 줄기세포의 분화 과정에서 나타나는 전사인자 네트워크의 동적 변화를 단일세포 수준에서 분석하였습니다.\\\\n* 단일세포 RNA 시퀀싱 기술을 활용하여 시간에 따른 유전자 발현 프로파일을 구축하고, 이를 바탕으로 전사인자 네트워크의 변화를 추적하였습니다.\\\\n* 분석 결과, 줄기세포 분화 과정에서 핵심적인 역할을 하는 여러 전사인자들을 식별하고, 이들 간의 상호작용 네트워크를 구축하였습니다.\\\\n* 시간에 따른 전사인자 발현 패턴 변화를 통해 줄기세포 분화의 주요 단계와 각 단계를 조절하는 핵심 인자들을 규명하였습니다.\\\\n\\\\n<<<추후 연구 계획>>>\\\\n* 식별된 핵심 전사인자들의 기능 검증을 위한 유전자 편집 실험 수행\\\\n* 다양한 환경 조건 (예: 스트레스, 영양 상태 변화)에서의 전사인자 네트워크 변화 연구\\\\n* 다른 식물 종에서의 비교 분석을 통한 진화적 보존성 연구\\\\n* 인공지능과 기계학습 기법을 활용한 전사인자 네트워크 예측 모델 개발\\\\n* 주요 키워드: CRISPR-Cas9, 환경 스트레스 응답, 비교유전체학, 네트워크 생물학, 기계학습\\\\n\\\\n<<<미래 전망>>>\\\\n* 이번 연구 결과는 식물 줄기세포의 분화 메커니즘에 대한 깊이 있는 이해를 제공하며, 이는 다음과 같은 분야에 중요한 영향을 미칠 것으로 예상됩니다:\\\\n* 작물 개량: 전사인자 네트워크 조절을 통한 수확량 증대, 스트레스 저항성 향상 등 작물의 특성 개선\\\\n* 식물 바이오테크놀로지: 맞춤형 식물 조직 배양 기술 개발, 유용 물질 생산을 위한 식물 공장 시스템 최적화\\\\n* 생태학 및 환경과학: 기후 변화에 대한 식물의 적응 메커니즘 이해 및 예측\\\\n* 합성생물학: 인공적인 전사인자 네트워크 설계를 통한 새로운 기능의 식물 개발\\\\n* 이러한 연구 결과는 궁극적으로 식량 안보 강화, 환경 문제 해결, 바이오 경제 발전에 기여할 것으로 기대됩니다.'}}
-  
+
     OUTPUT:
     <<<연구 배경>>>
     * 식물 줄기세포의 분화 과정은 식물의 성장과 발달에 핵심적인 역할을 합니다. 이 과정을 분자 수준에서 이해하는 것은 식물과학 분야에서 매우 중요한 과제입니다.
@@ -663,8 +673,8 @@ class seteukBasicIntroduction:
     * 이 연구를 통해 환경 친화적인 건축 설계에 대한 기초적인 안목을 기릅니다.
     """
 
-  human= r"""
-    
+    human = r"""
+
     major: {major}
     topic: {topic}
     difficulty level: {seteuk_depth}
@@ -673,9 +683,8 @@ class seteukBasicIntroduction:
     OUTPUT:"""
 
 
-
 class seteukBasicCoclusion:
-  system = r"""
+    system = r"""
     GOAL:  
     * You are a writing expert who provides guidance for composing the conclusion of a high school student's career exploration essay.  
     * You must check 'proto' and 'topic' to understand the content.  
@@ -728,15 +737,16 @@ class seteukBasicCoclusion:
     * Ensure that the response is written in honorific language (polite speech) using '~입니다', '~합니다'. This is a very important point, so make sure sentences are properly structured and respectful.  
   """
 
-  human= r"""
+    human = r"""
   {context}
-  
+
   major: {major}
   topic: {topic}
   difficulty level: {seteuk_depth}
   proto: {proto}
 
   OUTPUT:"""
+
 
 class protoResearcher_prompt():
     def __init__(self, major, keyword, topic, search_keyword):
@@ -752,15 +762,16 @@ class protoResearcher_prompt():
         topic: {topic}
         """
 
+
 class protoInspectorPrompt:
-  system= r"""
+    system = r"""
     GOAL:
     * You are an analyst reviewing a draft guide for activities that help high school students explore career paths based on their majors.
     * As you read the draft, if the content pertains to general principles, return {{'Response': ['']}}.
     * However, if the content requires fact-checking—such as references to specific literary works, published books, or historical events—you will search for relevant information. In such cases, generate search terms and return them in a list format like {{'Response': ['Event XYZ', 'Author AAA’s Book BBB']}}.
 
   """
-  context= r"""
+    context = r"""
 
   CONTEXT:
   keyword: {keyword}
@@ -768,5 +779,5 @@ class protoInspectorPrompt:
   topic: {topic}
   level: {seteuk_depth}
   proto: {proto}
-  
+
   OUTPUT:"""
