@@ -61,7 +61,7 @@ class KeywordExtractionPrompt:
     [결론]
     {conclusion}
 
-    위 내용을 분석하여 가장 중요한 키워드 5-10개를 추출하고, raw_weight를 계산해주세요.
+    위 내용을 분석하여 가장 중요한 키워드 10-30개를 추출하고, raw_weight를 계산해주세요.
 
     계산 방법:
     1. 불용어(조사, 접속사, 일반 동사) 제거
