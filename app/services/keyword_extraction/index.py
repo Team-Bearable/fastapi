@@ -11,11 +11,12 @@ import json
 import re
 
 
-def extract_keywords(introduction: str, body: str, conclusion: str) -> list:
+def extract_keywords(info: str, introduction: str, body: str, conclusion: str) -> list:
     """
     세특 콘텐츠에서 빈도 기반 raw_weight가 부여된 키워드를 추출합니다.
 
     Args:
+        info: 전공/과목
         introduction: 도입부 텍스트
         body: 본문 텍스트
         conclusion: 결론 텍스트
@@ -34,7 +35,7 @@ def extract_keywords(introduction: str, body: str, conclusion: str) -> list:
         # 체인 구성
         keyword_chain = (
                 {
-                    "topic": RunnablePassthrough(),
+                    "info": RunnablePassthrough(),
                     "introduction": RunnablePassthrough(),
                     "body": RunnablePassthrough(),
                     "conclusion": RunnablePassthrough()
@@ -46,6 +47,7 @@ def extract_keywords(introduction: str, body: str, conclusion: str) -> list:
 
         # 키워드 추출 실행
         result = keyword_chain.invoke({
+            "info": info if info else "전공/과목 없음",
             "introduction": introduction,
             "body": body,
             "conclusion": conclusion

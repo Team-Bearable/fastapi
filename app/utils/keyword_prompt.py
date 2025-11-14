@@ -45,6 +45,9 @@ class KeywordExtractionPrompt:
     human = r"""
     아래 세특 내용에서 핵심 키워드를 추출하고 raw_weight를 계산해주세요.
 
+    [전공/과목]
+    {info}
+
     [도입부]
     {introduction}
 
@@ -59,7 +62,7 @@ class KeywordExtractionPrompt:
     계산 방법:
     1. 불용어(조사, 접속사, 일반 동사) 제거
     2. 전체 콘텐츠에서 맥락 상 중요한 키워드의 가중치 계산
-    3. 주제/제목에 등장한 키워드는 가중치 * 2
+    3. [전공/과목]에 등장한 키워드는 가중치 * 2 (매우 중요!)
     4. 복합어(예: "안전 점검", "산화환원 반응")는 구문 가중 반영 (* 1.2)
 
     반드시 Python 리스트 형식으로만 답변해주세요: [{{"keyword": "키워드1", "raw_weight": 7.2}}, {{"keyword": "키워드2", "raw_weight": 4.8}}, ...]

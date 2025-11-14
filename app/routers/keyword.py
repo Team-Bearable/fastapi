@@ -18,6 +18,11 @@ class KeywordExtractionModel(BaseModel):
     # 웹훅 기반 비동기 처리 필드
     historyId: Union[str, int]  # 필수: History ID (숫자 또는 문자열 허용)
 
+    # 과목 정보 (topic 구성용)
+    major: Optional[str] = None
+    subject: Optional[str] = None
+    subjectDetail: Optional[str] = None
+
     # 콘텐츠 필드
     guideline: GuidelineModel  # 필수: guideline 객체
 
@@ -41,6 +46,7 @@ async def keyword_extraction(payload: KeywordExtractionModel):
     Args:
         payload: API 서버 요청 데이터
             - historyId (필수): History ID (웹훅 응답 시 식별자로 사용)
+            - major, subject, subjectDetail: 전공/과목 (info 구성에 사용)
             - guideline (필수): {introduction, body, conclusion} 객체
 
     Returns:
@@ -57,15 +63,27 @@ async def keyword_extraction(payload: KeywordExtractionModel):
     raw_weight 계산 방법:
         - 불용어(조사, 접속사, 일반 동사) 제거
         - 전체 콘텐츠에서 맥락 상 중요한 키워드의 가중치 계산
-        - 주제/제목에 등장한 키워드는 가중치 × 2
+        - 전공/과목에 등장한 키워드는 가중치 × 2
         - 복합어(예: "안전 점검")는 구문 가중 반영 (× 1.2)
     """
     try:
+        # info 구성: major > subject > subjectDetail
+        info_parts = []
+        if payload.major:
+            info_parts.append(payload.major)
+        if payload.subject:
+            info_parts.append(payload.subject)
+        if payload.subjectDetail:
+            info_parts.append(payload.subjectDetail)
+        info = " - ".join(info_parts) if info_parts else ""
+
+        # 콘텐츠 추출
         introduction = payload.guideline.introduction
         body = payload.guideline.body
         conclusion = payload.guideline.conclusion
 
         keywords = extract_keywords(
+            info=info,
             introduction=introduction,
             body=body,
             conclusion=conclusion
