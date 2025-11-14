@@ -1,4 +1,3 @@
-
 class KeywordExtractionPrompt:
     system = r"""
     GOAL
@@ -8,7 +7,7 @@ class KeywordExtractionPrompt:
     * Calculate raw_weight based on frequency and positional importance.
 
     EXTRACTION CRITERIA
-    * Extract 5-10 most important keywords or key phrases
+    * Extract most important keywords or key phrases
     * Prioritize technical terms, concepts, and academic vocabulary
     * Include both Korean and English terms when relevant
     * Prefer multi-word expressions (복합어) when they represent key concepts (e.g., "안전 점검", "산화환원 반응")
@@ -22,9 +21,7 @@ class KeywordExtractionPrompt:
     RAW_WEIGHT CALCULATION
     * raw_weight is a frequency-based absolute score, NOT normalized 0-1 range
     * Base score = term frequency in the entire content
-    * Apply 1.2x multiplier if the keyword appears in the topic/title
     * Apply additional weight for compound expressions (복합어)
-    * Example: If "산화환원" appears 5 times and also in title → raw_weight = 5 × 1.2 = 6.0
     * raw_weight can be any positive number (typically 1-20 range for academic content)
 
     OUTPUT FORMAT
@@ -34,7 +31,6 @@ class KeywordExtractionPrompt:
     * Format: [{{"keyword": "키워드1", "raw_weight": 6.5}}, {{"keyword": "키워드2", "raw_weight": 4.2}}, ...]
 
     EXAMPLE
-    Topic: "DNA 복제 메커니즘 연구"
     Content: "DNA 복제는... DNA 중합효소가... 반보존적 복제 과정에서 DNA 중합효소의 역할..."
 
     Output: [
@@ -48,9 +44,6 @@ class KeywordExtractionPrompt:
 
     human = r"""
     아래 세특 내용에서 핵심 키워드를 추출하고 raw_weight를 계산해주세요.
-
-    [주제/제목]
-    {topic}
 
     [도입부]
     {introduction}

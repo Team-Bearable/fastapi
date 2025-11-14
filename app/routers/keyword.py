@@ -18,17 +18,8 @@ class KeywordExtractionModel(BaseModel):
     # 웹훅 기반 비동기 처리 필드
     historyId: Union[str, int]  # 필수: History ID (숫자 또는 문자열 허용)
 
-    # 과목 정보 (topic 구성용)
-    major: Optional[str] = None
-    subject: Optional[str] = None
-    subjectDetail: Optional[str] = None
-
-    # 콘텐츠 필드 (세 가지 방식 지원)
-    guideline: Optional[GuidelineModel] = None  # 방식 1: guideline 객체 (권장)
-    content: Optional[str] = None  # 방식 2: 전체 콘텐츠 하나로
-    introduction: Optional[str] = None  # 방식 3: 분리된 형태 (하위호환)
-    body: Optional[str] = None
-    conclusion: Optional[str] = None
+    # 콘텐츠 필드
+    guideline: GuidelineModel  # 필수: guideline 객체
 
 
 router = APIRouter()
@@ -50,10 +41,7 @@ async def keyword_extraction(payload: KeywordExtractionModel):
     Args:
         payload: API 서버 요청 데이터
             - historyId (필수): History ID (웹훅 응답 시 식별자로 사용)
-            - major, subject, subjectDetail: 과목 정보 (topic 구성에 사용)
-            - guideline: {introduction, body, conclusion} 객체 (권장) 또는
-            - content: 전체 콘텐츠 (하나의 문자열) 또는
-            - introduction, body, conclusion: 분리된 콘텐츠 (하위호환)
+            - guideline (필수): {introduction, body, conclusion} 객체
 
     Returns:
         웹훅 응답용 데이터
@@ -73,43 +61,11 @@ async def keyword_extraction(payload: KeywordExtractionModel):
         - 복합어(예: "안전 점검")는 구문 가중 반영 (× 1.2)
     """
     try:
-        # topic 구성: major > subject > subjectDetail
-        topic_parts = []
-        if payload.major:
-            topic_parts.append(payload.major)
-        if payload.subject:
-            topic_parts.append(payload.subject)
-        if payload.subjectDetail:
-            topic_parts.append(payload.subjectDetail)
-        topic = " - ".join(topic_parts) if topic_parts else ""
-
-        # 콘텐츠 처리: guideline > content > introduction/body/conclusion 순서
-        if payload.guideline:
-            # 방식 1: guideline 객체 (권장)
-            introduction = payload.guideline.introduction
-            body = payload.guideline.body
-            conclusion = payload.guideline.conclusion
-        elif payload.content:
-            # 방식 2: content를 그대로 사용
-            full_content = payload.content
-            introduction = full_content
-            body = full_content
-            conclusion = full_content
-        else:
-            # 방식 3: 분리된 콘텐츠 사용 (하위호환)
-            introduction = payload.introduction or ""
-            body = payload.body or ""
-            conclusion = payload.conclusion or ""
-
-        # 최소한 하나의 콘텐츠는 있어야 함
-        if not introduction and not body and not conclusion:
-            raise HTTPException(
-                status_code=400,
-                detail="guideline, content 또는 introduction/body/conclusion 중 최소 하나는 필수입니다."
-            )
+        introduction = payload.guideline.introduction
+        body = payload.guideline.body
+        conclusion = payload.guideline.conclusion
 
         keywords = extract_keywords(
-            topic=topic,
             introduction=introduction,
             body=body,
             conclusion=conclusion

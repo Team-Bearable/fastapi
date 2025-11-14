@@ -3,6 +3,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils.model import anthropic
 from utils.keyword_prompt import KeywordExtractionPrompt
@@ -10,12 +11,11 @@ import json
 import re
 
 
-def extract_keywords(topic: str, introduction: str, body: str, conclusion: str) -> list:
+def extract_keywords(introduction: str, body: str, conclusion: str) -> list:
     """
     세특 콘텐츠에서 빈도 기반 raw_weight가 부여된 키워드를 추출합니다.
 
     Args:
-        topic: 주제/제목
         introduction: 도입부 텍스트
         body: 본문 텍스트
         conclusion: 결론 텍스트
@@ -33,20 +33,19 @@ def extract_keywords(topic: str, introduction: str, body: str, conclusion: str) 
 
         # 체인 구성
         keyword_chain = (
-            {
-                "topic": RunnablePassthrough(),
-                "introduction": RunnablePassthrough(),
-                "body": RunnablePassthrough(),
-                "conclusion": RunnablePassthrough()
-            }
-            | keyword_prompt
-            | anthropic
-            | StrOutputParser()
+                {
+                    "topic": RunnablePassthrough(),
+                    "introduction": RunnablePassthrough(),
+                    "body": RunnablePassthrough(),
+                    "conclusion": RunnablePassthrough()
+                }
+                | keyword_prompt
+                | anthropic
+                | StrOutputParser()
         )
 
         # 키워드 추출 실행
         result = keyword_chain.invoke({
-            "topic": topic if topic else "주제 없음",
             "introduction": introduction,
             "body": body,
             "conclusion": conclusion
