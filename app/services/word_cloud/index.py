@@ -36,7 +36,7 @@ def generate_word_cloud(keywords: list, font_index: int = None, colormap: str = 
 
         # 키워드 개수에 따라 relative_scaling 동적 조절
         keyword_count = len(frequencies)
-        relative_scaling = min(keyword_count / 300, 1.0)  # 최대 1.0
+        relative_scaling = min(keyword_count / 100, 1.0)  # 최대 1.0
         print(f"키워드 개수: {keyword_count}, relative_scaling: {relative_scaling:.3f}")
 
         # 한글 폰트 경로 설정
