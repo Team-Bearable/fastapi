@@ -4,14 +4,19 @@ import os
 import glob
 from pathlib import Path
 import random
+import numpy as np
+from PIL import Image, ImageDraw
 
 
-def generate_word_cloud(keywords: list, font_index: int = None, colormap: str = None) -> BytesIO:
+def generate_word_cloud(keywords: list, font: int = None, color: int = None, mask: int = None) -> BytesIO:
     """
     키워드 리스트로부터 워드 클라우드 이미지를 생성합니다.
 
     Args:
         keywords: [{"keyword": "키워드", "raw_weight": 7.2}, ...] 형식의 키워드 리스트
+        font: 폰트 인덱스 (0-6, None이면 랜덤)
+        color: 색상 테마 인덱스 (0-19, None이면 랜덤)
+        mask: 마스크 인덱스 (None이면 직사각형)
 
     Returns:
         BytesIO: 워드 클라우드 이미지의 바이트 스트림
@@ -40,7 +45,7 @@ def generate_word_cloud(keywords: list, font_index: int = None, colormap: str = 
         print(f"키워드 개수: {keyword_count}, relative_scaling: {relative_scaling:.3f}")
 
         # 한글 폰트 경로 설정
-        font_path = get_korean_font_path(font_index)
+        font_path = get_korean_font_path(font)
 
         if not font_path:
             raise ValueError("한글 폰트를 찾을 수 없습니다. fonts/ 디렉토리에 폰트를 설치해주세요.")
@@ -50,24 +55,32 @@ def generate_word_cloud(keywords: list, font_index: int = None, colormap: str = 
             raise ValueError(f"폰트 파일이 존재하지 않습니다: {font_path}")
 
         # 색상 테마 선택
-        selected_colormap = get_colormap(colormap)
+        colormap = get_colormap(color)
 
-        print(f"워드 클라우드 생성 - 폰트: {os.path.basename(font_path)}, 색상: {selected_colormap}")
+        print(f"워드 클라우드 생성 - 폰트: {os.path.basename(font_path)}, 색상: {colormap}")
 
         # 워드 클라우드 생성
-        wordcloud = WordCloud(
-            width=580,
-            height=520,
-            background_color='white',
-            font_path=font_path,
-            relative_scaling=relative_scaling,
-            min_font_size=1,
-            max_font_size=100,
-            max_words=500,
-            colormap=selected_colormap,
-            prefer_horizontal=0.9,
-            margin=10
-        ).generate_from_frequencies(frequencies)
+        wc_params = {
+            'background_color': 'white',
+            'font_path': font_path,
+            'relative_scaling': relative_scaling,
+            'min_font_size': 1,
+            'max_font_size': 100,
+            'max_words': 500,
+            'colormap': colormap,
+            'prefer_horizontal': 0.9,
+            'margin': 10
+        }
+
+        # 마스크가 있으면 mask 사용, 없으면 width/height 사용
+        if mask is not None:
+            wc_params['mask'] = get_mask(mask)
+            wc_params['contour_width'] = 0
+        else:
+            wc_params['width'] = 580
+            wc_params['height'] = 520
+
+        wordcloud = WordCloud(**wc_params).generate_from_frequencies(frequencies)
 
         # 이미지를 바이트 스트림으로 변환
         img_buffer = BytesIO()
@@ -119,7 +132,7 @@ def get_korean_font_path(font_index: int = None) -> str:
             selected_font = all_fonts[font_index]
             print(f"✅ 선택된 폰트: [{font_index}] {selected_font.name}")
         else:
-            print(f"⚠️ 잘못된 폰트 인덱스: {font_index} (0-{len(all_fonts)-1} 사용 가능)")
+            print(f"⚠️ 잘못된 폰트 인덱스: {font_index} (0-{len(all_fonts) - 1} 사용 가능)")
             # fallback to random
             selected_font = random.choice(all_fonts)
             selected_index = all_fonts.index(selected_font)
@@ -128,59 +141,61 @@ def get_korean_font_path(font_index: int = None) -> str:
     return str(selected_font)
 
 
-def get_colormap(colormap: str = None) -> str:
+def get_colormap(colormap_index: int = None) -> str:
     """
     워드 클라우드 색상 테마를 선택합니다.
 
     Args:
-        colormap: 색상 테마 이름. None이면 랜덤 선택
+        colormap_index: 색상 테마 인덱스 (0-19). None이면 랜덤 선택
 
     Returns:
         str: matplotlib colormap 이름
     """
     # 사용 가능한 색상 테마 목록
     available_colormaps = [
-        'viridis',      # 보라-청록-노랑
-        'plasma',       # 보라-분홍-노랑
-        'inferno',      # 검정-보라-주황-노랑
-        'magma',        # 검정-보라-분홍-흰색
-        'cividis',      # 파랑-노랑 (색맹 친화)
-        'twilight',     # 핑크-보라-파랑
-        'rainbow',      # 무지개
-        'cool',         # 청록-보라
-        'hot',          # 검정-빨강-노랑-흰색
-        'spring',       # 자홍-노랑
-        'summer',       # 초록-노랑
-        'autumn',       # 빨강-주황-노랑
-        'winter',       # 파랑-초록
-        'Blues',        # 파랑 계열
-        'Greens',       # 초록 계열
-        'Oranges',      # 주황 계열
-        'Reds',         # 빨강 계열
-        'Purples',      # 보라 계열
-        'PuBuGn',       # 보라-파랑-초록
-        'RdYlBu',       # 빨강-노랑-파랑
+        'viridis',  # 보라-청록-노랑
+        'plasma',  # 보라-분홍-노랑
+        'inferno',  # 검정-보라-주황-노랑
+        'magma',  # 검정-보라-분홍-흰색
+        'cividis',  # 파랑-노랑 (색맹 친화)
+        'twilight',  # 핑크-보라-파랑
+        'rainbow',  # 무지개
+        'cool',  # 청록-보라
+        'hot',  # 검정-빨강-노랑-흰색
+        'spring',  # 자홍-노랑
+        'summer',  # 초록-노랑
+        'autumn',  # 빨강-주황-노랑
+        'winter',  # 파랑-초록
+        'Blues',  # 파랑 계열
+        'Greens',  # 초록 계열
+        'Oranges',  # 주황 계열
+        'Reds',  # 빨강 계열
+        'Purples',  # 보라 계열
+        'PuBuGn',  # 보라-파랑-초록
+        'RdYlBu',  # 빨강-노랑-파랑
     ]
 
-    print(f"사용 가능한 색상 테마 ({len(available_colormaps)}개):")
-    for idx, cm in enumerate(available_colormaps):
-        print(f"  [{idx}] {cm}")
-
-    if colormap is None:
+    if colormap_index is None:
         # 랜덤 선택
         selected = random.choice(available_colormaps)
         selected_index = available_colormaps.index(selected)
         print(f"🎨 랜덤 색상: [{selected_index}] {selected}")
         return selected
-    elif colormap in available_colormaps:
-        # 이름으로 선택
-        selected_index = available_colormaps.index(colormap)
-        print(f"✅ 선택된 색상: [{selected_index}] {colormap}")
-        return colormap
     else:
-        # 잘못된 이름이면 랜덤
-        print(f"⚠️ 알 수 없는 색상 테마: {colormap}")
-        selected = random.choice(available_colormaps)
-        selected_index = available_colormaps.index(selected)
-        print(f"🎨 랜덤 색상으로 대체: [{selected_index}] {selected}")
-        return selected
+        # 인덱스로 선택
+        if 0 <= colormap_index < len(available_colormaps):
+            selected = available_colormaps[colormap_index]
+            print(f"✅ 선택된 색상: [{colormap_index}] {selected}")
+            return selected
+        else:
+            # 잘못된 인덱스면 랜덤
+            print(f"⚠️ 잘못된 색상 인덱스: {colormap_index} (0-{len(available_colormaps) - 1} 사용 가능)")
+            selected = random.choice(available_colormaps)
+            selected_index = available_colormaps.index(selected)
+            print(f"🎨 랜덤 색상으로 대체: [{selected_index}] {selected}")
+            return selected
+
+
+def get_mask(mask: int = None) -> str:
+    # 기능 미구현
+    return ''

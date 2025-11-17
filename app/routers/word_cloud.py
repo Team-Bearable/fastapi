@@ -17,8 +17,9 @@ class KeywordItem(BaseModel):
 class WordCloudRequestModel(BaseModel):
     userId: Union[str, int]  # 사용자 ID (숫자 또는 문자열 허용)
     keywords: List[KeywordItem]  # 키워드 리스트
-    font: Optional[int] = None  # 폰트 인덱스 (0부터 시작, None이면 랜덤)
-    color: Optional[str] = None  # 색상 테마 이름 (viridis, plasma 등, None이면 랜덤)
+    font: Optional[int] = None  # 폰트 인덱스 (0-6, None이면 랜덤)
+    color: Optional[int] = None  # 색상 테마 인덱스 (0-19, None이면 랜덤)
+    mask: Optional[int] = None  # 마스크 인덱스 (None이면 직사각형)
 
 
 router = APIRouter()
@@ -33,8 +34,9 @@ async def create_word_cloud(payload: WordCloudRequestModel):
         payload: 요청 데이터
             - userId: 사용자 ID
             - keywords: [{"keyword": "키워드", "raw_weight": 7.2}, ...] 형식의 키워드 리스트
-            - font: 폰트 인덱스 (0부터 시작, 생략 시 랜덤 선택)
-            - color: 색상 테마 (viridis, plasma, inferno 등, 생략 시 랜덤 선택)
+            - font: 폰트 인덱스 (0-6, 생략 시 랜덤 선택)
+            - color: 색상 테마 인덱스 (0-19, 생략 시 랜덤 선택)
+            - mask: 마스크 인덱스 (생략 시 직사각형)
 
     Returns:
         StreamingResponse: PNG 형식의 워드 클라우드 이미지
@@ -54,13 +56,19 @@ async def create_word_cloud(payload: WordCloudRequestModel):
         ]
 
         # 워드 클라우드 생성
-        img_buffer = generate_word_cloud(keywords_dict, font_index=payload.font, colormap=payload.color)
+        img_buffer = generate_word_cloud(
+            keywords_dict,
+            font=payload.font,
+            color=payload.color,
+            mask=payload.mask
+        )
 
         # 로그 출력
         print(f"워드 클라우드 생성 완료 - userId: {payload.userId}")
         print(f"키워드 개수: {len(payload.keywords)}")
         print(f"폰트 인덱스: {payload.font if payload.font is not None else '랜덤'}")
-        print(f"색상 테마: {payload.color if payload.color else '랜덤'}")
+        print(f"색상 테마 인덱스: {payload.color if payload.color is not None else '랜덤'}")
+        print(f"마스크 인덱스: {payload.mask if payload.mask is not None else '직사각형'}")
 
         # 이미지를 PNG로 반환
         return StreamingResponse(
