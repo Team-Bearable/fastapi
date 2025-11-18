@@ -63,13 +63,6 @@ async def create_word_cloud(payload: WordCloudRequestModel):
             mask=payload.mask
         )
 
-        # 로그 출력
-        print(f"워드 클라우드 생성 완료 - userId: {payload.userId}")
-        print(f"키워드 개수: {len(payload.keywords)}")
-        print(f"폰트 인덱스: {payload.font if payload.font is not None else '랜덤'}")
-        print(f"색상 테마 인덱스: {payload.color if payload.color is not None else '랜덤'}")
-        print(f"마스크 인덱스: {payload.mask if payload.mask is not None else '직사각형'}")
-
         # 이미지를 PNG로 반환
         return StreamingResponse(
             img_buffer,
@@ -82,5 +75,4 @@ async def create_word_cloud(payload: WordCloudRequestModel):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"워드 클라우드 생성 실패: {str(e)}")
         raise HTTPException(status_code=500, detail=f"워드 클라우드 생성 실패: {str(e)}")

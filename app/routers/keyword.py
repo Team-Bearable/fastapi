@@ -95,11 +95,6 @@ async def keyword_extraction(payload: KeywordExtractionModel):
             "keywords": keywords
         }
 
-        # 응답 로그 출력
-        print(f"키워드 추출 완료 - historyId: {response_data['historyId']}")
-        print(f"추출된 키워드 개수: {len(keywords)}")
-        print(f"응답 데이터: {response_data}")
-
         return response_data
 
     except HTTPException:

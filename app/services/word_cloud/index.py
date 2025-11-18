@@ -37,12 +37,9 @@ def generate_word_cloud(keywords: list, font: int = None, color: int = None, mas
         # 가중치 내림차순으로 정렬 (큰 단어가 중앙에 먼저 배치되도록)
         frequencies = dict(sorted(frequencies.items(), key=lambda x: x[1], reverse=True))
 
-        print(f"키워드 정렬 순서 (상위 5개): {list(frequencies.keys())[:5]}")
-
         # 키워드 개수에 따라 relative_scaling 동적 조절
         keyword_count = len(frequencies)
-        relative_scaling = min(keyword_count / 100, 1.0)  # 최대 1.0
-        print(f"키워드 개수: {keyword_count}, relative_scaling: {relative_scaling:.3f}")
+        relative_scaling = min(keyword_count / 200, 1.0)  # 최대 1.0
 
         # 한글 폰트 경로 설정
         font_path = get_korean_font_path(font)
@@ -56,8 +53,6 @@ def generate_word_cloud(keywords: list, font: int = None, color: int = None, mas
 
         # 색상 테마 선택
         colormap = get_colormap(color)
-
-        print(f"워드 클라우드 생성 - 폰트: {os.path.basename(font_path)}, 색상: {colormap}")
 
         # 워드 클라우드 생성
         wc_params = {
@@ -89,8 +84,7 @@ def generate_word_cloud(keywords: list, font: int = None, color: int = None, mas
 
         return img_buffer
 
-    except Exception as e:
-        print(f"워드 클라우드 생성 중 오류 발생: {e}")
+    except Exception:
         raise
 
 
@@ -110,33 +104,25 @@ def get_korean_font_path(font_index: int = None) -> str:
     fonts_dir = project_root / "fonts"
 
     if not fonts_dir.exists():
-        print("❌ fonts/ 디렉토리가 존재하지 않습니다.")
         return None
 
     # 디렉토리 내 모든 폰트 파일 찾기
     all_fonts = sorted(list(fonts_dir.glob("*.ttf")) + list(fonts_dir.glob("*.otf")))
 
     if not all_fonts:
-        print("❌ fonts/ 디렉토리에 폰트 파일이 없습니다.")
         return None
 
     # 폰트 선택
     if font_index is None:
         # 랜덤 선택
         selected_font = random.choice(all_fonts)
-        selected_index = all_fonts.index(selected_font)
-        print(f"🎲 랜덤 선택: [{selected_index}] {selected_font.name}")
     else:
         # 인덱스로 선택
         if 0 <= font_index < len(all_fonts):
             selected_font = all_fonts[font_index]
-            print(f"✅ 선택된 폰트: [{font_index}] {selected_font.name}")
         else:
-            print(f"⚠️ 잘못된 폰트 인덱스: {font_index} (0-{len(all_fonts) - 1} 사용 가능)")
             # fallback to random
             selected_font = random.choice(all_fonts)
-            selected_index = all_fonts.index(selected_font)
-            print(f"🎲 랜덤 선택으로 대체: [{selected_index}] {selected_font.name}")
 
     return str(selected_font)
 
@@ -177,23 +163,14 @@ def get_colormap(colormap_index: int = None) -> str:
 
     if colormap_index is None:
         # 랜덤 선택
-        selected = random.choice(available_colormaps)
-        selected_index = available_colormaps.index(selected)
-        print(f"🎨 랜덤 색상: [{selected_index}] {selected}")
-        return selected
+        return random.choice(available_colormaps)
     else:
         # 인덱스로 선택
         if 0 <= colormap_index < len(available_colormaps):
-            selected = available_colormaps[colormap_index]
-            print(f"✅ 선택된 색상: [{colormap_index}] {selected}")
-            return selected
+            return available_colormaps[colormap_index]
         else:
             # 잘못된 인덱스면 랜덤
-            print(f"⚠️ 잘못된 색상 인덱스: {colormap_index} (0-{len(available_colormaps) - 1} 사용 가능)")
-            selected = random.choice(available_colormaps)
-            selected_index = available_colormaps.index(selected)
-            print(f"🎨 랜덤 색상으로 대체: [{selected_index}] {selected}")
-            return selected
+            return random.choice(available_colormaps)
 
 
 def get_mask(mask: int = None) -> str:

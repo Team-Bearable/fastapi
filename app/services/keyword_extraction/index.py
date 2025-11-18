@@ -57,8 +57,7 @@ def extract_keywords(info: str, introduction: str, body: str, conclusion: str) -
         keywords = parse_keyword_result(result)
         return keywords
 
-    except Exception as e:
-        print(f"키워드 추출 중 오류 발생: {e}")
+    except Exception:
         return []
 
 
@@ -111,8 +110,8 @@ def parse_keyword_result(result: str) -> list:
                                 kw['raw_weight'] = 0.5
                             kw['raw_weight'] = float(kw['raw_weight'])
                         return keywords
-            except Exception as e:
-                print(f"eval 파싱 실패: {e}")
+            except Exception:
+                pass
 
         # 3. 딕셔너리 패턴 추출 시도 (raw_weight만)
         raw_weight_pattern = r'\{"keyword":\s*"([^"]+)",\s*"raw_weight":\s*([\d.]+)\}'
@@ -121,9 +120,7 @@ def parse_keyword_result(result: str) -> list:
             return [{"keyword": kw, "raw_weight": float(w)} for kw, w in matches]
 
         # 4. 실패 시 빈 리스트 반환
-        print(f"키워드 파싱 실패. 원본 결과: {result}")
         return []
 
-    except Exception as e:
-        print(f"키워드 파싱 중 오류: {e}")
+    except Exception:
         return []
