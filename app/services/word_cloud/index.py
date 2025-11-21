@@ -8,20 +8,24 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def generate_word_cloud(keywords: list, font: int = None, color: int = None, mask: int = None) -> BytesIO:
+def generate_word_cloud(keywords: list, font: int, color: int, mask: int) -> BytesIO:
     """
     키워드 리스트로부터 워드 클라우드 이미지를 생성합니다.
 
     Args:
         keywords: [{"keyword": "키워드", "raw_weight": 7.2}, ...] 형식의 키워드 리스트
-        font: 폰트 인덱스 (0-6, None이면 랜덤)
-        color: 색상 테마 인덱스 (0-19, None이면 랜덤)
-        mask: 마스크 인덱스 (None이면 직사각형)
+        font: 폰트 인덱스 (0=랜덤, 1-7=폰트 선택)
+        color: 색상 테마 인덱스 (0=랜덤, 1-20=색상 선택)
+        mask: 마스크 인덱스 (0=직사각형, 1+=마스크 선택)
 
     Returns:
         BytesIO: 워드 클라우드 이미지의 바이트 스트림
     """
     try:
+        # 1-based 인덱스를 0-based로 변환 (0이면 None = 랜덤/미사용)
+        font = None if font == 0 else font - 1
+        color = None if color == 0 else color - 1
+        mask = None if mask == 0 else mask - 1
         # 키워드 리스트를 frequency dictionary로 변환
         # wordcloud는 {word: frequency} 형식을 받음
         frequencies = {}

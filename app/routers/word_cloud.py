@@ -17,9 +17,9 @@ class KeywordItem(BaseModel):
 class WordCloudRequestModel(BaseModel):
     userId: Union[str, int]  # 사용자 ID (숫자 또는 문자열 허용)
     keywords: List[KeywordItem]  # 키워드 리스트
-    font: Optional[int] = None  # 폰트 인덱스 (0-6, None이면 랜덤)
-    color: Optional[int] = None  # 색상 테마 인덱스 (0-19, None이면 랜덤)
-    mask: Optional[int] = None  # 마스크 인덱스 (None이면 직사각형)
+    font: int  # 폰트 인덱스 (0=랜덤, 1-7=폰트 선택)
+    color: int  # 색상 테마 인덱스 (0=랜덤, 1-20=색상 선택)
+    mask: int  # 마스크 인덱스 (0=직사각형, 1+=마스크 선택)
 
 
 router = APIRouter()
@@ -34,9 +34,9 @@ async def create_word_cloud(payload: WordCloudRequestModel):
         payload: 요청 데이터
             - userId: 사용자 ID
             - keywords: [{"keyword": "키워드", "raw_weight": 7.2}, ...] 형식의 키워드 리스트
-            - font: 폰트 인덱스 (0-6, 생략 시 랜덤 선택)
-            - color: 색상 테마 인덱스 (0-19, 생략 시 랜덤 선택)
-            - mask: 마스크 인덱스 (생략 시 직사각형)
+            - font: 폰트 인덱스 (0=랜덤, 1-7=폰트 선택)
+            - color: 색상 테마 인덱스 (0=랜덤, 1-20=색상 선택)
+            - mask: 마스크 인덱스 (0=직사각형, 1+=마스크 선택)
 
     Returns:
         StreamingResponse: PNG 형식의 워드 클라우드 이미지
