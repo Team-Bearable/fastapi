@@ -33,7 +33,7 @@ router = APIRouter(
 @router.post("/topic")
 async def topic_gen(payload: TopicModel):
     major = payload.major
-    keyword = payload.keyword 
+    keyword = payload.keyword
     seteuk_depth = payload.seteuk_depth
     depth_dict = {'기초': 'Basic', '응용': 'Applied','심화':'Advanced'}
     tp_cs = seteukBasicTopic()
@@ -63,9 +63,20 @@ async def topic_gen(payload: TopicModel):
 @router.post("/guidelines")
 async def protoGenerator(payload: GraphModel):
     major = payload.major
-    keyword = payload.keyword 
+    keyword = payload.keyword
     topic = payload.topic
     seteuk_depth = payload.seteuk_depth
     depth_dict = {'기초': 'Basic', '응용': 'Applied','심화':'Advanced'}
-    response = run(major, keyword, topic, depth_dict[seteuk_depth])
+
+    try:
+        response = run(major, keyword, topic, depth_dict[seteuk_depth])
+    except Exception as e:
+        raise HTTPException(
+            status_code=getattr(e, 'status_code', 500),
+            detail={
+                "error": e.__class__.__name__,
+                "message": str(e)
+            }
+        )
+
     return response
