@@ -15,9 +15,6 @@ class GuidelineModel(BaseModel):
 
 
 class KeywordExtractionModel(BaseModel):
-    # 웹훅 기반 비동기 처리 필드
-    historyId: Union[str, int]  # 필수: History ID (숫자 또는 문자열 허용)
-
     # 과목 정보 (topic 구성용)
     major: Optional[str] = None
     subject: Optional[str] = None
@@ -34,23 +31,13 @@ router = APIRouter()
 async def keyword_extraction(payload: KeywordExtractionModel):
     """
     세특 콘텐츠에서 빈도 기반 raw_weight가 부여된 키워드를 추출하는 엔드포인트
-    (웹훅 기반 비동기 처리)
-
-    Flow:
-        1. NestJS가 History 생성 (historyId)
-        2. LLM 서버로 요청 { historyId, guideline }
-        3. LLM이 키워드 추출
-        4. 웹훅으로 응답 { historyId, keywords }
-        5. NestJS가 historyId로 조회하여 userId 등 자동 획득
 
     Args:
         payload: API 서버 요청 데이터
-            - historyId (필수): History ID (웹훅 응답 시 식별자로 사용)
             - major, subject, subjectDetail: 전공/과목 (info 구성에 사용)
             - guideline (필수): {introduction, body, conclusion} 객체
 
     Returns:
-        웹훅 응답용 데이터
         {
             "historyId": "123",
             "keywords": [
@@ -63,8 +50,6 @@ async def keyword_extraction(payload: KeywordExtractionModel):
     raw_weight 계산 방법:
         - 불용어(조사, 접속사, 일반 동사) 제거
         - 전체 콘텐츠에서 맥락 상 중요한 키워드의 가중치 계산
-        - 전공/과목에 등장한 키워드는 가중치 × 2
-        - 복합어(예: "안전 점검")는 구문 가중 반영 (× 1.2)
     """
     try:
         # info 구성: major > subject > subjectDetail
@@ -89,7 +74,6 @@ async def keyword_extraction(payload: KeywordExtractionModel):
             conclusion=conclusion
         )
 
-        # 웹훅 응답: historyId + keywords (historyId를 문자열로 통일)
         response_data = {
             "historyId": str(payload.historyId),
             "keywords": keywords
