@@ -39,7 +39,6 @@ async def keyword_extraction(payload: KeywordExtractionModel):
 
     Returns:
         {
-            "historyId": "123",
             "keywords": [
                 {"keyword": "키워드1", "raw_weight": 7.2},
                 {"keyword": "키워드2", "raw_weight": 4.8},
@@ -74,14 +73,7 @@ async def keyword_extraction(payload: KeywordExtractionModel):
             conclusion=conclusion
         )
 
-        response_data = {
-            "historyId": str(payload.historyId),
-            "keywords": keywords
-        }
+        return {"keywords": keywords}
 
-        return response_data
-
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"키워드 추출 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
