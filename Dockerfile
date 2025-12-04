@@ -6,6 +6,7 @@ WORKDIR /app
 # 소스 코드 복사
 COPY app ./app
 COPY requirements.txt .
+COPY fonts ./fonts
 
 # 빌드 시 환경 변수 전달
 ARG ENV= local

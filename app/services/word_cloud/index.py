@@ -177,6 +177,5 @@ def get_colormap(colormap_index: int = None) -> str:
             return random.choice(available_colormaps)
 
 
-def get_mask(mask: int = None) -> str:
-    # 기능 미구현
-    return ''
+def get_mask(mask: int = None):
+    return None
