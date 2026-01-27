@@ -53,4 +53,18 @@ def extract_keywords(info: str, introduction: str, body: str, conclusion: str) -
     })
 
     # 결과 파싱
-    return json.loads(result)
+    keywords = json.loads(result)
+
+    # LLM 응답 키 정규화
+    normalized = []
+    for item in keywords:
+        normalized_item = {"keyword": item.get("keyword", "")}
+        if "rawWeight" in item:
+            normalized_item["raw_weight"] = item["rawWeight"]
+        elif "raw_weight" in item:
+            normalized_item["raw_weight"] = item["raw_weight"]
+        else:
+            normalized_item["raw_weight"] = 0
+        normalized.append(normalized_item)
+
+    return normalized
