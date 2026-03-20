@@ -38,12 +38,26 @@ async def analyze_report(
         major=major or "",
     )
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
 
-    message = client.messages.create(
+    message = await client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=4096,
         system=SYSTEM,
+        output_config={
+            "format": {
+                "type": "json_schema",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "opinion": {"type": "string"},
+                    },
+                    "required": ["summary", "opinion"],
+                    "additionalProperties": False,
+                },
+            }
+        },
         messages=[
             {
                 "role": "user",
@@ -65,11 +79,9 @@ async def analyze_report(
         ],
     )
 
-    response_text = message.content[0].text
-
-    parsed = json.loads(response_text)
+    parsed = json.loads(message.content[0].text)
 
     return {
-        "summary": parsed.get("summary", ""),
-        "opinion": parsed.get("opinion", ""),
+        "summary": parsed["summary"],
+        "opinion": parsed["opinion"],
     }
