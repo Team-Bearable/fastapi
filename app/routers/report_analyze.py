@@ -19,7 +19,7 @@ class ReportAnalyzeRequest(BaseModel):
 
 class ReportAnalyzeResponse(BaseModel):
     summary: str
-    opinion: str
+    review: str
 
 
 router = APIRouter()

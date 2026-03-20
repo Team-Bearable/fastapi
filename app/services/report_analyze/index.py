@@ -51,9 +51,9 @@ async def analyze_report(
                     "type": "object",
                     "properties": {
                         "summary": {"type": "string"},
-                        "opinion": {"type": "string"},
+                        "review": {"type": "string"},
                     },
-                    "required": ["summary", "opinion"],
+                    "required": ["summary", "review"],
                     "additionalProperties": False,
                 },
             }
@@ -83,5 +83,5 @@ async def analyze_report(
 
     return {
         "summary": parsed["summary"],
-        "opinion": parsed["opinion"],
+        "review": parsed["review"],
     }
