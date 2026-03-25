@@ -5,7 +5,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from services.report_analyze import analyze_report
+from services.submission_analyze import analyze_report
 
 
 class ReportAnalyzeRequest(BaseModel):
@@ -25,8 +25,8 @@ class ReportAnalyzeResponse(BaseModel):
 router = APIRouter()
 
 
-@router.post("/report-analyze", response_model=ReportAnalyzeResponse)
-async def report_analyze(payload: ReportAnalyzeRequest):
+@router.post("/submission-analysis", response_model=ReportAnalyzeResponse)
+async def submission_analyze(payload: ReportAnalyzeRequest):
     try:
         result = await analyze_report(
             presigned_url=payload.presignedUrl,
