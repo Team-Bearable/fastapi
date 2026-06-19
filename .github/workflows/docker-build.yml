@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
       - feat/*
 
 jobs:
@@ -19,13 +18,7 @@ jobs:
       # 2. 환경변수 설정: 브랜치에 따라 ENV와 이미지 태그, API 키들을 설정
       - name: Set Environment Variables
         run: |
-          if [[ "${{ github.ref_name }}" == "dev" ]]; then
-            echo "ENVIRONMENT=development" >> $GITHUB_ENV
-            echo "DOCKER_TAG=dev-${{ github.sha }}" >> $GITHUB_ENV
-            echo "ANTHROPIC_API_KEY=${{ secrets.DEV_ENV_ANTHROPIC }}" >> $GITHUB_ENV
-            echo "PERPLEXITY_API_KEY=${{ secrets.DEV_ENV_PERPLEXITY }}" >> $GITHUB_ENV
-            echo "OPENAI_API_KEY=${{ secrets.DEV_ENV_OPENAI }}" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "DOCKER_TAG=prod-${{ github.sha }}" >> $GITHUB_ENV
             echo "ANTHROPIC_API_KEY=${{ secrets.PROD_ENV_ANTHROPIC }}" >> $GITHUB_ENV
@@ -83,12 +76,4 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name lambdaProtoContainerProd \
-            --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }}
-
-      # 8. Lambda 업데이트: dev 브랜치인 경우 development Lambda 업데이트
-      - name: Deploy Development Lambda Function
-        if: ${{ github.ref_name == 'dev' }}
-        run: |
-          aws lambda update-function-code \
-            --function-name lambdaProtoContainerDev \
             --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/lambda-fastapi:${{ env.DOCKER_TAG }}
