@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from mangum import Mangum
 
 import sys
 import os
@@ -19,6 +18,3 @@ app.include_router(difficulty_distil.router)
 app.include_router(keyword.router)
 app.include_router(word_cloud.router)
 app.include_router(submission_analyze.router)
-
-# Mangum 객체 생성 (AWS Lambda 호환용)
-handler = Mangum(app)
