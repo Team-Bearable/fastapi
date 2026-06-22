@@ -7,7 +7,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from utils.analyze_prompt import SYSTEM, USER
 
-load_dotenv()
+load_dotenv(os.getenv("DOTENV_PATH", ".env"))
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
