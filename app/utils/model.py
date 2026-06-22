@@ -5,7 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(os.getenv("DOTENV_PATH", ".env"))
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
