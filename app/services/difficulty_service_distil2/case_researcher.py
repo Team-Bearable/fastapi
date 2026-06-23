@@ -3,7 +3,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from utils.difficulty_prompt_distil2 import  material_organizer, perplexity_prompt
-from utils.model import anthropic, perple, perplexity_model, gpt4o
+from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
 from utils.utils import perple_process_result
 
 
@@ -38,7 +38,7 @@ def perplexity(state):
     
     try:
         response = perple.chat.completions.create(
-            model = perplexity_model,
+            model = PERPLEXITY_MODEL,
             messages = perple_messages
         )
         case_result = response.choices[0].message.content

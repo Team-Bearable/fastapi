@@ -9,6 +9,7 @@ import os
 ANTHROPIC_MODEL = "claude-sonnet-4-6"
 OPENAI_MODEL = "gpt-4o"
 OPENAI_MINI_MODEL = "gpt-4o-mini"
+PERPLEXITY_MODEL = "sonar"
 
 load_dotenv(os.getenv("DOTENV_PATH", ".env"))
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -33,6 +34,5 @@ gpt4o_mini = ChatOpenAI(
     openai_api_key = OPENAI_API_KEY)
 
 perple = OpenAI(api_key = PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
-perplexity_model = "sonar"
 
 anthropic_async = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)

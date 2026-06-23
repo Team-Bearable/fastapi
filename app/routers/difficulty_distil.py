@@ -7,7 +7,7 @@ import sys, os, ast, re
 from app.routers.proto import parse_json_response
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.model import anthropic, gpt4o, gpt4o_mini, perple, perplexity_model
+from utils.model import anthropic, gpt4o, gpt4o_mini, perple, PERPLEXITY_MODEL
 from utils.difficulty_prompt_distil2 import seteukBasicTopic
 from langchain_core.output_parsers import StrOutputParser
 from fastapi import APIRouter
