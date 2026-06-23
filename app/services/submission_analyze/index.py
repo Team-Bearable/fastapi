@@ -1,15 +1,9 @@
 import httpx
 import base64
 import json
-import anthropic
-import os
 from typing import Optional
-from dotenv import load_dotenv
 from utils.analyze_prompt import SYSTEM, USER
-
-load_dotenv(os.getenv("DOTENV_PATH", ".env"))
-
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+from utils.model import ANTHROPIC_MODEL, anthropic_async
 
 
 async def download_pdf(presigned_url: str) -> bytes:
@@ -38,10 +32,8 @@ async def analyze_report(
         major=major or "",
     )
 
-    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
-
-    message = await client.messages.create(
-        model="claude-sonnet-4-6",
+    message = await anthropic_async.messages.create(
+        model=ANTHROPIC_MODEL,
         max_tokens=4096,
         system=SYSTEM,
         output_config={
