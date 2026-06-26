@@ -1,6 +1,6 @@
 """Cloud Vision OCR → 규칙 추출기 입력(text, pages_json) 어댑터.
 
-PDF를 페이지 이미지로 렌더(PyMuPDF, DPI 150 — 튜닝 기준) → Vision
+PDF를 페이지 이미지로 렌더(PyMuPDF, DPI 300) → Vision
 `DOCUMENT_TEXT_DETECTION` 으로 문단+좌표 추출 → `cluster_rows` 로 표 행 복원해
 Team-Bearable/ocr 규칙 상태머신이 먹는 동일 포맷(text: 행 ' | ' / 페이지 '\\f',
 pages_json: 박스 좌표)을 만든다.
@@ -17,7 +17,7 @@ from google.auth.transport.requests import Request as GAuthRequest
 from .rules import cluster_rows
 
 VISION_URL = "https://vision.googleapis.com/v1/images:annotate"
-DPI = 150  # 튜닝(GAP_FACTOR 등)이 이 해상도 좌표 기준 — 변경 금지
+DPI = 300  # 창체 학년 숫자 마커 검출 최소선
 _SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 _creds = None
