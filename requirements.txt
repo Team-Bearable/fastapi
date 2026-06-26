@@ -59,3 +59,5 @@ wordcloud==1.9.3
 yarl==1.18.3
 Pillow==11.0.0
 redis==5.2.1
+PyMuPDF==1.27.2.3
+google-auth==2.55.1
