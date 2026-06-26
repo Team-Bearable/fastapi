@@ -37,7 +37,7 @@ OUT_DIR = "output"
 
 # 컬럼 x_left 비율
 GRADE_X_MAX = 0.20
-AREA_X_MIN = 0.20
+AREA_X_MIN = 0.13
 AREA_X_MAX = 0.30
 TIME_X_MIN = 0.25
 TIME_X_MAX = 0.40
