@@ -22,18 +22,10 @@
 규칙 출처: input/source_prompt/창체_prompt.txt
 """
 
-import json
 import re
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from .section_split import split_sections
-
-DEFAULT_STEM = "고등학교생활기록부_서울대_김희선"
-OUT_DIR = "output"
 
 # 컬럼 x_left 비율
 GRADE_X_MAX = 0.20
@@ -440,19 +432,3 @@ def extract(pages_json: list[dict], 창체_page_ids: list[int]) -> 창체결과:
             특기사항=text,
         ))
     return 창체결과(창체=records)
-
-
-def main() -> None:
-    stem = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_STEM
-    txt_path = Path(OUT_DIR) / f"{stem}.txt"
-    json_path = Path(OUT_DIR) / f"{stem}.json"
-    text = txt_path.read_text(encoding="utf-8")
-    with json_path.open(encoding="utf-8") as f:
-        pages_json = json.load(f)
-    sections = split_sections(text)
-    result = extract(pages_json, sections["창체"])
-    print(json.dumps(result.model_dump(), ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()

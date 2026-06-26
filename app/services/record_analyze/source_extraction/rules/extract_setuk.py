@@ -24,17 +24,9 @@
 규칙 출처: input/source_prompt/세특_prompt.txt
 """
 
-import json
 import re
-import sys
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from .section_split import split_sections
-
-DEFAULT_STEM = "고등학교생활기록부_서울대_김희선"
-OUT_DIR = "output"
 ROW_TOL = 0.6  # 같은 행 판단 기준 — ocr_paddle_table.py와 동일
 GAP_FACTOR = 1.6  # 정상 행간 대비 이 배수 이상이면 빈 줄로 간주
 MAX_GAP_PX = 200.0  # 이 이상의 갭은 페이지 본문 끝~푸터 사이로 보고 빈 줄로 삼지 않음
@@ -513,21 +505,3 @@ def extract(
     final = _split_semesters(raw)
     final = _correct_duplicate_roman_subject(final)
     return 세특결과(세특=[세특레코드(**r) for r in final])
-
-
-def main() -> None:
-    stem = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_STEM
-    txt_path = Path(OUT_DIR) / f"{stem}.txt"
-    json_path = Path(OUT_DIR) / f"{stem}.json"
-    text = txt_path.read_text(encoding="utf-8")
-    pages_json = None
-    if json_path.exists():
-        with json_path.open(encoding="utf-8") as f:
-            pages_json = json.load(f)
-    sections = split_sections(text)
-    result = extract(text, sections["교과"], pages_json)
-    print(json.dumps(result.model_dump(), ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()

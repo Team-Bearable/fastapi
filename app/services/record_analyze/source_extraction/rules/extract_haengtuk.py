@@ -12,18 +12,10 @@
 규칙 출처: input/source_prompt/행특_prompt.txt
 """
 
-import json
 import re
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from .section_split import split_sections
-
-DEFAULT_STEM = "고등학교생활기록부_서울대_김희선"
-OUT_DIR = "output"
 
 # 좌측 학년 마커 식별 임계값: x_left < page_width * 이 비율
 # (행특 표의 학년 컬럼은 페이지 좌측 ~16% 영역에 위치)
@@ -230,21 +222,3 @@ def extract(pages_json: list[dict], 행특_page_ids: list[int]) -> 행특결과:
         if _boxes_to_text(grade_boxes[g])
     ]
     return 행특결과(행특=records)
-
-
-def main() -> None:
-    # CLI 사용법: python extract_haengtuk.py [stem]
-    # stem 생략 시 디폴트(김희선). stem이 주어지면 output/{stem}.txt, output/{stem}.json 사용.
-    stem = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_STEM
-    txt_path = Path(OUT_DIR) / f"{stem}.txt"
-    json_path = Path(OUT_DIR) / f"{stem}.json"
-    text = txt_path.read_text(encoding="utf-8")
-    with json_path.open(encoding="utf-8") as f:
-        pages_json = json.load(f)
-    sections = split_sections(text)
-    result = extract(pages_json, sections["행특"])
-    print(json.dumps(result.model_dump(), ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()
