@@ -40,6 +40,12 @@ PATTERNS = {
     "특별활동": _spaced("특별활동상황"),
 }
 
+# 차단 키워드 매칭이 페이지 본문의 이 비율보다 앞에 있으면 '해당 페이지에서 새 섹션이 단독으로 시작'.
+# 그 이후면 '같은 페이지에 이전 섹션 본문과 새 섹션이 공존'으로 본다.
+_TOP_THRESHOLD = 0.3
+
+LEGACY_FORMAT_MESSAGE = "2011 개정 이전 교육과정 포맷(재량활동/특별활동) — 분석 미지원"
+
 
 def _find_first(pages: list[str], pattern: re.Pattern, start: int = 1) -> int | None:
     """1-based 페이지 번호로 첫 매칭 페이지 반환. start 이전 페이지는 무시."""
@@ -49,11 +55,6 @@ def _find_first(pages: list[str], pattern: re.Pattern, start: int = 1) -> int | 
         if pattern.search(page):
             return i
     return None
-
-
-# 차단 키워드 매칭이 페이지 본문의 이 비율보다 앞에 있으면 '해당 페이지에서 새 섹션이 단독으로 시작'.
-# 그 이후면 '같은 페이지에 이전 섹션 본문과 새 섹션이 공존'으로 본다.
-_TOP_THRESHOLD = 0.3
 
 
 def _starts_alone(page: str, pattern: re.Pattern) -> bool:
@@ -70,9 +71,6 @@ def _section_end(blocker_start: int | None, blocker_pat: re.Pattern, pages: list
     if _starts_alone(pages[blocker_start - 1], blocker_pat):
         return blocker_start - 1
     return blocker_start  # 같은 페이지에 공존 → 그 페이지까지 포함
-
-
-LEGACY_FORMAT_MESSAGE = "2011 개정 이전 교육과정 포맷(재량활동/특별활동) — 분석 미지원"
 
 
 def is_legacy_format(text: str) -> bool:
