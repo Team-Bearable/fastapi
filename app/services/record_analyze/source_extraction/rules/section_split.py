@@ -21,6 +21,14 @@ import sys
 DEFAULT_OCR_TXT = "output/고등학교생활기록부_서울대_김희선.txt"
 
 
+class UnsupportedRecordFormatError(Exception):
+    """분석 미지원 생기부 포맷 신호 — 호출측이 분석을 건너뛰고 거절(reject)하도록.
+
+    예: 2011 개정 이전 교육과정('창의적 재량활동상황'+'특별활동상황'). OCR/파서 결함에
+    의한 일반 추출 실패(RuntimeError)와 구분해, '미지원 포맷'으로 의도적 거절할 때 쓴다.
+    """
+
+
 def _spaced(s: str) -> re.Pattern:
     """글자 사이에 공백이 들어가도 매칭되도록 패턴화."""
     return re.compile(r"\s*".join(re.escape(c) for c in s))
@@ -32,6 +40,8 @@ PATTERNS = {
     "행특": _spaced("행동특성및종합의견"),
     "독서": _spaced("독서활동상황"),
     "봉사": _spaced("봉사활동실적"),
+    "재량": _spaced("재량활동상황"),
+    "특별활동": _spaced("특별활동상황"),
 }
 
 
@@ -66,6 +76,22 @@ def _section_end(blocker_start: int | None, blocker_pat: re.Pattern, pages: list
     return blocker_start  # 같은 페이지에 공존 → 그 페이지까지 포함
 
 
+LEGACY_FORMAT_MESSAGE = "2011 개정 이전 교육과정 포맷(재량활동/특별활동) — 분석 미지원"
+
+
+def is_legacy_format(text: str) -> bool:
+    """2011 개정 이전 옛 교육과정 포맷 여부.
+
+    현대 창체 헤더(창의적체험활동상황)가 없고 옛 헤더(재량활동상황/특별활동상황)가
+    양성으로 잡히면 옛 포맷. '헤더 부재'만으로 단정하지 않아(텍스트 레이어 없는 스캔본
+    현대 문서를 오거절하지 않음) PDF 내장 텍스트·OCR 텍스트 어느 쪽에도 동일하게 쓴다.
+    """
+    pages = text.split("\f")
+    if _find_first(pages, PATTERNS["창체"]):
+        return False
+    return bool(_find_first(pages, PATTERNS["재량"]) or _find_first(pages, PATTERNS["특별활동"]))
+
+
 def split_sections(text: str) -> dict[str, list[int]]:
     pages = text.split("\f")
     total = len(pages)
@@ -73,6 +99,10 @@ def split_sections(text: str) -> dict[str, list[int]]:
     s_창체 = _find_first(pages, PATTERNS["창체"])
     s_교과 = _find_first(pages, PATTERNS["교과"])
     s_행특 = _find_first(pages, PATTERNS["행특"])
+
+    if is_legacy_format(text):
+        raise UnsupportedRecordFormatError(LEGACY_FORMAT_MESSAGE)
+
     if s_창체 is None or s_교과 is None or s_행특 is None:
         raise RuntimeError(f"필수 섹션 헤더 매칭 실패: 창체={s_창체}, 교과={s_교과}, 행특={s_행특}")
 
