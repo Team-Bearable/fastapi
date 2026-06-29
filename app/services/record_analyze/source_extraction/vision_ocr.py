@@ -23,6 +23,7 @@ DPI = 300  # 창체 학년 숫자 마커 검출 최소선
 _SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 _MAX_OCR_RETRIES = 3
 _RETRY_INTERVAL = 5.0
+_MAX_WORKERS = 8
 
 _creds = None
 _project = None
@@ -107,13 +108,13 @@ def _page_to_inputs(args):
     return "\n".join(cluster_rows(items)).strip(), boxes, w, h
 
 
-def ocr_document(pdf_bytes: bytes, max_workers: int = 8) -> tuple[str, list[dict]]:
+def ocr_document(pdf_bytes: bytes) -> tuple[str, list[dict]]:
     """PDF 바이트 → (text, pages_json). 규칙 추출기 입력으로 바로 사용."""
     token, project = _token()  # 풀 바깥에서 1회 발급 (동시 refresh 레이스 방지)
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     pngs = [doc.load_page(i).get_pixmap(dpi=DPI).tobytes("png") for i in range(doc.page_count)]
     doc.close()
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+    with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as ex:
         results = list(ex.map(_page_to_inputs, [(p, token, project) for p in pngs]))
     page_texts = [r[0] for r in results]
     pages_json = [{"page": i + 1, "width": r[2], "height": r[3], "boxes": r[1]}
