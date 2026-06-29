@@ -68,7 +68,7 @@ def _to_schema_tags(ko_tags: dict) -> dict:
     for ko, camel in _KO2CAMEL.items():
         value = ko_tags[ko]
         if camel in _MULTI:
-            tags[camel] = [v.strip() for v in value.split(";") if v.strip()]
+            tags[camel] = [v.strip() for v in value.replace("；", ";").split(";") if v.strip()]
         else:
             tags[camel] = value
     return tags
