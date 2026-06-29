@@ -9,7 +9,6 @@ pages_json: 박스 좌표)을 만든다.
 import base64
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
 
 import fitz  # PyMuPDF
 import requests
@@ -58,7 +57,7 @@ def _para_box(para: dict) -> list[int]:
     return [min(xs) if xs else 0, min(ys) if ys else 0, max(xs) if xs else 0, max(ys) if ys else 0]
 
 
-def _ocr_page(png_bytes: bytes, token: str, project: str) -> Any | None:
+def _ocr_page(png_bytes: bytes, token: str, project: str) -> dict:
     """한 페이지 Vision OCR. 일시 오류는 재시도하고 소진 시 OcrError."""
     body = {
         "requests": [{
@@ -69,6 +68,7 @@ def _ocr_page(png_bytes: bytes, token: str, project: str) -> Any | None:
     }
     headers = {"Authorization": f"Bearer {token}", "x-goog-user-project": project,
                "Content-Type": "application/json"}
+    last_exc: Exception | None = None
     for attempt in range(_MAX_OCR_RETRIES):
         try:
             r = requests.post(VISION_URL, json=body, headers=headers, timeout=90)
@@ -78,10 +78,10 @@ def _ocr_page(png_bytes: bytes, token: str, project: str) -> Any | None:
                 raise OcrError(f"Vision 응답 오류: {resp['error'].get('message', '')}")
             return resp
         except (requests.RequestException, OcrError) as e:
-            if attempt == _MAX_OCR_RETRIES - 1:
-                raise OcrError("Vision OCR 페이지 실패 (재시도 소진)") from e
-            time.sleep(_RETRY_INTERVAL)
-    return None
+            last_exc = e
+            if attempt < _MAX_OCR_RETRIES - 1:
+                time.sleep(_RETRY_INTERVAL)
+    raise OcrError("Vision OCR 페이지 실패 (재시도 소진)") from last_exc
 
 
 def _page_to_inputs(args):
