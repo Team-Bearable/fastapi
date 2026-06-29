@@ -7,18 +7,23 @@ pages_json: 박스 좌표)을 만든다.
 """
 
 import base64
+import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
 import fitz  # PyMuPDF
 import requests
 import google.auth
 from google.auth.transport.requests import Request as GAuthRequest
 
+from .exceptions import OcrError
 from .rules import cluster_rows
 
 VISION_URL = "https://vision.googleapis.com/v1/images:annotate"
 DPI = 300  # 창체 학년 숫자 마커 검출 최소선
 _SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+_MAX_OCR_RETRIES = 3
+_RETRY_INTERVAL = 5.0
 
 _creds = None
 _project = None
@@ -53,7 +58,8 @@ def _para_box(para: dict) -> list[int]:
     return [min(xs) if xs else 0, min(ys) if ys else 0, max(xs) if xs else 0, max(ys) if ys else 0]
 
 
-def _ocr_png(png_bytes: bytes, token: str, project: str) -> dict:
+def _ocr_page(png_bytes: bytes, token: str, project: str) -> Any | None:
+    """한 페이지 Vision OCR. 일시 오류는 재시도하고 소진 시 OcrError."""
     body = {
         "requests": [{
             "image": {"content": base64.b64encode(png_bytes).decode()},
@@ -63,15 +69,25 @@ def _ocr_png(png_bytes: bytes, token: str, project: str) -> dict:
     }
     headers = {"Authorization": f"Bearer {token}", "x-goog-user-project": project,
                "Content-Type": "application/json"}
-    r = requests.post(VISION_URL, json=body, headers=headers, timeout=90)
-    r.raise_for_status()
-    return r.json()["responses"][0]
+    for attempt in range(_MAX_OCR_RETRIES):
+        try:
+            r = requests.post(VISION_URL, json=body, headers=headers, timeout=90)
+            r.raise_for_status()
+            resp = r.json()["responses"][0]
+            if "error" in resp:
+                raise OcrError(f"Vision 응답 오류: {resp['error'].get('message', '')}")
+            return resp
+        except (requests.RequestException, OcrError) as e:
+            if attempt == _MAX_OCR_RETRIES - 1:
+                raise OcrError("Vision OCR 페이지 실패 (재시도 소진)") from e
+            time.sleep(_RETRY_INTERVAL)
+    return None
 
 
 def _page_to_inputs(args):
     """한 페이지: Vision OCR → (cluster_rows 텍스트, box 리스트, W, H)."""
     png_bytes, token, project = args
-    resp = _ocr_png(png_bytes, token, project)
+    resp = _ocr_page(png_bytes, token, project)
     fta = resp.get("fullTextAnnotation", {})
     boxes: list[dict] = []
     w = h = 0
@@ -91,7 +107,7 @@ def _page_to_inputs(args):
     return "\n".join(cluster_rows(items)).strip(), boxes, w, h
 
 
-def ocr_pdf(pdf_bytes: bytes, max_workers: int = 8) -> tuple[str, list[dict]]:
+def ocr_document(pdf_bytes: bytes, max_workers: int = 8) -> tuple[str, list[dict]]:
     """PDF 바이트 → (text, pages_json). 규칙 추출기 입력으로 바로 사용."""
     token, project = _token()  # 풀 바깥에서 1회 발급 (동시 refresh 레이스 방지)
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
