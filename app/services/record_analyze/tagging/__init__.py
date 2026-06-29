@@ -73,8 +73,8 @@ def _to_schema_tags(ko_tags: dict) -> dict:
     return tags
 
 
-async def extract_tags(activity: str, target_major: str) -> dict:
-    user_message = f"활동: {activity}\n진학학과: {target_major}"
+async def extract_tags(activity: str, target_major: str | None) -> dict:
+    user_message = f"활동: {activity}\n진학학과: {target_major or ''}"
 
     message = await anthropic_async.messages.create(
         model=ANTHROPIC_MODEL,
