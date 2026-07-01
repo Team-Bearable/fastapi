@@ -104,6 +104,11 @@ class StreamConsumer:
     async def _loop(self):
         while self.running:
             try:
+                # 죽은 인스턴스가 남긴 idle 메시지를 먼저 회수(멀티 인스턴스 안전). 있으면 그것부터.
+                claimed = await self._reclaim()
+                if claimed:
+                    await self._spawn([(self.cfg.requests_stream, claimed)])
+                    continue
                 # 새 메시지를 기다린다(">" = 아직 아무도 안 가져간 새 것). block(ms)만큼 없으면 잠깐 쉬고 다시.
                 entries = await self.client.xreadgroup(
                     self.cfg.group, self.cfg.consumer,
@@ -119,6 +124,16 @@ class StreamConsumer:
             except Exception:
                 log.exception("consumer loop error")
                 await asyncio.sleep(1)
+
+    async def _reclaim(self):
+        # XAUTOCLAIM — 그룹 내 어떤 컨슈머든 min_idle 넘게 미ack 인 메시지를 이 컨슈머로 옮겨온다.
+        # 죽은 인스턴스 복구용. idle 임계가 최장 작업보다 커서 처리 중인 메시지는 뺏지 않는다.
+        result = await self.client.xautoclaim(
+            self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
+            min_idle_time=self.cfg.reclaim_min_idle_ms, count=self.cfg.batch,
+        )
+        # redis-py: (cursor, messages, deleted). messages = [(id, fields), ...]
+        return result[1] if len(result) > 1 else []
 
     async def _spawn(self, entries):
         for _stream, messages in entries:

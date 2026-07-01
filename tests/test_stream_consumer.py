@@ -185,6 +185,28 @@ async def test_restart_recovery():
         await probe.aclose()
 
 
+async def test_reclaim_orphaned_from_dead_instance(env):
+    consumer, client, cfg = env
+    cfg.reclaim_min_idle_ms = 0  # 즉시 회수(테스트)
+    await client.xgroup_create(cfg.requests_stream, cfg.group, id="0", mkstream=True)
+    await client.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"x": 1}, request_id="r-orphan"))
+    # 죽은 인스턴스('dead')가 메시지를 받고 ack 안 함 → dead 의 PEL 에 남음
+    await client.xreadgroup(cfg.group, "dead", {cfg.requests_stream: ">"}, count=10)
+
+    # 이름이 다른 우리 컨슈머가 XAUTOCLAIM 으로 회수(죽은 인스턴스 복구)
+    claimed = await consumer._reclaim()
+
+    assert [f["requestId"] for _id, f in claimed] == ["r-orphan"]
+    await consumer.client.aclose()
+
+
+async def test_consumer_name_is_unique(monkeypatch):
+    # 인스턴스별 유니크(host+pid) — 고정이면 멀티 인스턴스에서 중복 처리 위험
+    monkeypatch.delenv("LLM_WORKER_CONSUMER", raising=False)
+    assert WorkerConfig().consumer == WorkerConfig().consumer  # 같은 프로세스=동일
+    assert str(os.getpid()) in WorkerConfig().consumer
+
+
 async def test_publish_failure_keeps_pending(env, monkeypatch):
     consumer, client, cfg = env
     # 발행(결과 스트림 xadd)이 실패하면 ack 하지 않아야 한다 — 메시지가 PEL 에 남아 복구 대상이 된다.
