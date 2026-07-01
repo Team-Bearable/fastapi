@@ -27,6 +27,7 @@ def test_record_extract_renames_page_range(monkeypatch):
     (UnsupportedRecordFormatError, "UNSUPPORTED_RECORD_FORMAT"),
     (MissingSectionError, "MISSING_SECTION"),
     (OcrError, "OCR_FAILED"),
+    (RuntimeError, "RECORD_EXTRACT_FAILED"),  # 다운로드 등 그 외 실패 → 전용 코드(LLM_FAILED 아님)
 ])
 def test_record_extract_error_mapping(monkeypatch, exc, code):
     def boom(url):

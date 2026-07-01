@@ -25,14 +25,19 @@ def _require(payload: dict, key: str):
 
 
 def handle_record_extract(payload: dict) -> dict:
+    url = _require(payload, "pdfFileUrl")  # 필드 검증은 try 밖 — InvalidPayload 가 catch-all 에 안 먹히게
     try:
-        records = extract_source_records(_require(payload, "pdfFileUrl"))
+        records = extract_source_records(url)
     except UnsupportedRecordFormatError as e:
         raise JobFailed("UNSUPPORTED_RECORD_FORMAT", str(e))
     except MissingSectionError as e:
         raise JobFailed("MISSING_SECTION", str(e))
     except OcrError as e:
         raise JobFailed("OCR_FAILED", str(e))
+    except Exception as e:
+        # PDF 다운로드 실패 등 그 외 원문추출 실패. RECORD_EXTRACT 는 LLM 을 안 쓰므로
+        # 기본 fallback(LLM_FAILED)이 부적합 — 전용 코드로 던진다.
+        raise JobFailed("RECORD_EXTRACT_FAILED", str(e))
     for r in records:
         r["sourcePageRange"] = r.pop("source_page_range")
     return {"records": records}
