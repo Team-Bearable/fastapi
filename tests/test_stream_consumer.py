@@ -8,6 +8,7 @@ import time
 import fakeredis
 import pytest
 
+from worker import consumer as consumer_module
 from worker import dispatch
 from worker.config import WorkerConfig
 from worker.consumer import StreamConsumer
@@ -111,6 +112,33 @@ async def test_malformed_json_maps_to_invalid_payload(env):
     _id, f = res[0]
     assert f["status"] == "FAILED"
     assert f["errorCode"] == "INVALID_PAYLOAD"
+
+
+async def test_reconnect_on_startup_failure(env, monkeypatch):
+    consumer, client, cfg = env
+    # 백오프를 짧게(테스트 속도)
+    monkeypatch.setattr(consumer_module, "_MIN_BACKOFF", 0.01)
+    monkeypatch.setattr(consumer_module, "_MAX_BACKOFF", 0.02)
+
+    # 첫 기동은 연결 실패, 두 번째부터 정상 → 죽지 않고 재연결해 처리해야 한다.
+    calls = {"n": 0}
+    real_ensure = consumer._ensure_group
+
+    async def flaky_ensure():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise ConnectionError("boom")
+        await real_ensure()
+
+    monkeypatch.setattr(consumer, "_ensure_group", flaky_ensure)
+    await client.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"x": 1}, request_id="r-heal"))
+
+    res = await _run_until(consumer, client, cfg, 1)
+
+    assert calls["n"] >= 2  # 최소 1회 실패 후 재시도
+    _id, f = res[0]
+    assert f["requestId"] == "r-heal"
+    assert f["status"] == "SUCCEEDED"
 
 
 async def test_restart_recovery():

@@ -13,6 +13,10 @@ log = logging.getLogger("llm_worker")
 _SUCCEEDED = "SUCCEEDED"
 _FAILED = "FAILED"
 
+# 연결/기동 실패 시 재시도 대기(지수 백오프, 초).
+_MIN_BACKOFF = 1.0
+_MAX_BACKOFF = 30.0
+
 
 class StreamConsumer:
     """요청 스트림에서 메시지를 꺼내 LLM 으로 처리하고, 결과를 결과 스트림에 넣는 소비자.
@@ -37,19 +41,28 @@ class StreamConsumer:
         self._runner = asyncio.create_task(self._run())
 
     async def _run(self):
-        try:
-            await self._ensure_group()
-            log.info(
-                "consumer started stream=%s group=%s consumer=%s",
-                self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
-            )
-            await self._drain_pending()
-            await self._loop()
-        except asyncio.CancelledError:
-            pass
-        except Exception:
-            # 기동/실행 중 치명 오류를 삼키지 않고 남긴다(조용히 죽지 않도록).
-            log.exception("consumer terminated unexpectedly")
+        # 자가복구: 연결/기동이 실패해도 죽지 않고 백오프로 재연결한다(부팅 시 Redis 불가 등).
+        backoff = _MIN_BACKOFF
+        while self.running:
+            try:
+                await self._ensure_group()
+                log.info(
+                    "consumer started stream=%s group=%s consumer=%s",
+                    self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
+                )
+                backoff = _MIN_BACKOFF  # 연결 성공 → 백오프 리셋
+                await self._drain_pending()
+                await self._loop()
+                return  # _loop 은 running=False(셧다운) 일 때만 정상 반환
+            except asyncio.CancelledError:
+                return
+            except Exception:
+                log.exception("consumer 연결/실행 실패 — %.1fs 후 재시도", backoff)
+            try:
+                await asyncio.sleep(backoff)
+            except asyncio.CancelledError:
+                return
+            backoff = min(backoff * 2, _MAX_BACKOFF)
 
     async def stop(self):
         self.running = False
