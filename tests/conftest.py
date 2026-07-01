@@ -16,3 +16,25 @@ sys.modules["services.difficulty_service_distil2.seteuk_topic"] = _stub
 _stub_graph = types.ModuleType("services.difficulty_service_distil2.difficulty_graph")
 _stub_graph.run = lambda *a, **k: {}
 sys.modules["services.difficulty_service_distil2.difficulty_graph"] = _stub_graph
+
+# 생기부(record_analyze) 서비스도 스텁 — PyMuPDF/Vision OCR/langchain 없이 배관만 검증.
+_se = types.ModuleType("services.record_analyze.source_extraction")
+_se.extract_source_records = lambda url: []
+sys.modules["services.record_analyze.source_extraction"] = _se
+
+_exc = types.ModuleType("services.record_analyze.source_extraction.exceptions")
+for _name in ("UnsupportedRecordFormatError", "MissingSectionError", "OcrError"):
+    setattr(_exc, _name, type(_name, (Exception,), {}))
+sys.modules["services.record_analyze.source_extraction.exceptions"] = _exc
+
+async def _stub_extract_activities(content, section):
+    return {"activities": [content], "verbatim_ok": False}
+_ae = types.ModuleType("services.record_analyze.activity_extraction")
+_ae.extract_activities = _stub_extract_activities
+sys.modules["services.record_analyze.activity_extraction"] = _ae
+
+async def _stub_extract_tags(activity, target_major):
+    return {"tags": {}}
+_tg = types.ModuleType("services.record_analyze.tagging")
+_tg.extract_tags = _stub_extract_tags
+sys.modules["services.record_analyze.tagging"] = _tg
