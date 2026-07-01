@@ -13,7 +13,6 @@ log = logging.getLogger("llm_worker")
 _SUCCEEDED = "SUCCEEDED"
 _FAILED = "FAILED"
 
-# 연결/기동 실패 시 재시도 대기(지수 백오프, 초).
 _MIN_BACKOFF = 1.0
 _MAX_BACKOFF = 30.0
 
@@ -21,10 +20,8 @@ _MAX_BACKOFF = 30.0
 class StreamConsumer:
     """요청 스트림에서 메시지를 꺼내 LLM 으로 처리하고, 결과를 결과 스트림에 넣는 소비자.
 
-    FastAPI 가 켜질 때 백그라운드로 함께 돈다. 시작하면 먼저 지난 실행에서 처리하다 만
-    메시지를 다시 처리하고, 그다음부터 새 메시지를 계속 기다린다. 한 번에 처리하는 개수는
-    제한하며(config.max_concurrent), 시간이 오래 걸리는 LLM 호출은 별도 스레드에서 돌려
-    웹 요청 등 다른 일이 멈추지 않게 한다.
+    FastAPI lifespan 에서 백그라운드로 돈다. 오래 걸리는 LLM 호출은 별도 스레드에서 돌려
+    웹 요청을 막지 않고, 동시 처리량은 config.max_concurrent 로 제한한다.
     """
 
     def __init__(self, config):
@@ -50,7 +47,7 @@ class StreamConsumer:
                     "consumer started stream=%s group=%s consumer=%s",
                     self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
                 )
-                backoff = _MIN_BACKOFF  # 연결 성공 → 백오프 리셋
+                backoff = _MIN_BACKOFF
                 await self._drain_pending()
                 await self._loop()
                 return  # _loop 은 running=False(셧다운) 일 때만 정상 반환
@@ -76,7 +73,7 @@ class StreamConsumer:
         await self.client.aclose()
 
     async def _ensure_group(self):
-        # 이 스트림을 읽을 그룹을 만든다. 이미 있으면(BUSYGROUP) 그냥 넘어가고, 그 외 오류는 던진다.
+        # 그룹이 이미 있으면(BUSYGROUP) 무시, 그 외 오류는 던진다.
         try:
             await self.client.xgroup_create(
                 self.cfg.requests_stream, self.cfg.group, id="0", mkstream=True
@@ -109,7 +106,6 @@ class StreamConsumer:
                 if claimed:
                     await self._spawn([(self.cfg.requests_stream, claimed)])
                     continue
-                # 새 메시지를 기다린다(">" = 아직 아무도 안 가져간 새 것). block(ms)만큼 없으면 잠깐 쉬고 다시.
                 entries = await self.client.xreadgroup(
                     self.cfg.group, self.cfg.consumer,
                     {self.cfg.requests_stream: ">"},
