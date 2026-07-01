@@ -8,21 +8,31 @@
 
 from services.difficulty_service_distil2.seteuk_topic import recommend_topics
 from services.difficulty_service_distil2.difficulty_graph import run
+from worker.errors import InvalidPayload
 
 # Java 가 보내는 난이도 값을 프롬프트가 쓰는 표현으로 바꾼다.
 _DEPTH = {"BASIC": "Basic", "INTERMEDIATE": "Applied", "ADVANCED": "Advanced"}
+
+
+def _require(payload: dict, key: str):
+    try:
+        return payload[key]
+    except KeyError:
+        raise InvalidPayload(f"missing field: {key!r}")
 
 
 def _depth(value: str) -> str:
     try:
         return _DEPTH[value]
     except KeyError:
-        raise ValueError(f"unknown seteukDepth: {value!r}")
+        raise InvalidPayload(f"unsupported seteukDepth: {value!r}")
 
 
 def handle_topic_recommend(payload: dict) -> dict:
-    keyword = payload["keyword"]
-    lines = recommend_topics(payload["major"], keyword, _depth(payload["seteukDepth"]))
+    keyword = _require(payload, "keyword")
+    lines = recommend_topics(
+        _require(payload, "major"), keyword, _depth(_require(payload, "seteukDepth"))
+    )
 
     topics = []
     for line in lines:
@@ -40,7 +50,10 @@ def handle_topic_recommend(payload: dict) -> dict:
 def handle_guideline_generate(payload: dict) -> dict:
     keywords = payload.get("keywords") or []
     keyword = keywords[0] if keywords else ""
-    result = run(payload["major"], keyword, payload["topic"], _depth(payload["seteukDepth"]))
+    result = run(
+        _require(payload, "major"), keyword,
+        _require(payload, "topic"), _depth(_require(payload, "seteukDepth")),
+    )
     return {
         "introduction": result.get("introduction"),
         "body": result.get("body"),

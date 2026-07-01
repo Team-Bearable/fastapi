@@ -1,8 +1,5 @@
+from worker.errors import UnsupportedJobType
 from worker.handlers import seteuk
-
-
-class UnsupportedJobType(Exception):
-    """이 워커가 모르는 jobType. 결과 스트림에 실패(FAILED)로 돌려보낸다."""
 
 
 _HANDLERS = {

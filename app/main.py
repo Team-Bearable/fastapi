@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import asyncio
 import logging
 import sys
 import os
@@ -17,17 +16,17 @@ from worker.consumer import StreamConsumer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("main")
-_consumer = StreamConsumer(WorkerConfig())
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 백그라운드 태스크로 기동 — 소비 실패가 HTTP 서빙을 막지 않게 await 하지 않는다.
-    task = asyncio.create_task(_consumer.start())
-    logger.info("LLM stream consumer started in background")
+    # 러닝 이벤트 루프 안에서 생성한다(redis 클라이언트 루프 바인딩). start()는 내부에서
+    # 백그라운드 러너를 띄우고 즉시 반환하므로 Redis 장애가 HTTP 기동을 막지 않는다.
+    consumer = StreamConsumer(WorkerConfig())
+    await consumer.start()
+    logger.info("LLM stream consumer started")
     yield
-    await _consumer.stop()
-    task.cancel()
+    await consumer.stop()
     logger.info("LLM stream consumer stopped")
 
 

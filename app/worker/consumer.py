@@ -6,7 +6,7 @@ import time
 import redis.asyncio as redis
 
 from worker import dispatch
-from worker.dispatch import UnsupportedJobType
+from worker.errors import InvalidPayload, UnsupportedJobType
 
 log = logging.getLogger("llm_worker")
 
@@ -29,19 +29,35 @@ class StreamConsumer:
         self.sem = asyncio.Semaphore(config.max_concurrent)
         self.running = False
         self._tasks: set[asyncio.Task] = set()
+        self._runner: asyncio.Task | None = None
 
     async def start(self):
-        await self._ensure_group()
+        # 백그라운드 러너로 띄우고 즉시 반환한다 — Redis 장애가 앱(HTTP) 기동을 막지 않게.
         self.running = True
-        log.info(
-            "consumer started stream=%s group=%s consumer=%s",
-            self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
-        )
-        await self._drain_pending()
-        await self._loop()
+        self._runner = asyncio.create_task(self._run())
+
+    async def _run(self):
+        try:
+            await self._ensure_group()
+            log.info(
+                "consumer started stream=%s group=%s consumer=%s",
+                self.cfg.requests_stream, self.cfg.group, self.cfg.consumer,
+            )
+            await self._drain_pending()
+            await self._loop()
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            # 기동/실행 중 치명 오류를 삼키지 않고 남긴다(조용히 죽지 않도록).
+            log.exception("consumer terminated unexpectedly")
 
     async def stop(self):
         self.running = False
+        # 먼저 읽기 루프를 멈춘다 — 그래야 연결을 닫는 동안 xreadgroup 이 깨지며 나는 오류 로그가 없다.
+        if self._runner:
+            self._runner.cancel()
+            await asyncio.gather(self._runner, return_exceptions=True)
+        # 진행 중인 처리(_handle)가 결과 발행·ack 를 끝내게 기다린 뒤 연결을 닫는다.
         if self._tasks:
             await asyncio.gather(*self._tasks, return_exceptions=True)
         await self.client.aclose()
@@ -124,12 +140,14 @@ class StreamConsumer:
                 "errorMessage": str(e),
             })
             elapsed = time.monotonic() - started
-            if isinstance(e, UnsupportedJobType):
-                log.warning("failed requestId=%s jobType=%s errorCode=%s: %s",
-                            request_id, job_type, code, e)
-            else:
+            if code == "LLM_FAILED":
+                # 예상 못한 실패만 traceback 을 남긴다.
                 log.exception("failed requestId=%s jobType=%s errorCode=%s elapsed=%.2fs",
                               request_id, job_type, code, elapsed)
+            else:
+                # 계약성 실패(미지원 jobType·잘못된 payload)는 요약만.
+                log.warning("failed requestId=%s jobType=%s errorCode=%s: %s",
+                            request_id, job_type, code, e)
         finally:
             # 결과(성공이든 실패든)를 내보낸 메시지는 다 끝난 것이므로 "완료" 표시(ack)한다.
             # ack 해야 같은 메시지를 다시 받지 않는다.
@@ -143,4 +161,7 @@ class StreamConsumer:
 def _error_code(exc: Exception) -> str:
     if isinstance(exc, UnsupportedJobType):
         return "UNSUPPORTED_JOB_TYPE"
+    # payload 계약 위반(필수 필드 누락·미지원 값)과 JSON 파싱 실패는 입력 문제.
+    if isinstance(exc, (InvalidPayload, json.JSONDecodeError)):
+        return "INVALID_PAYLOAD"
     return "LLM_FAILED"
