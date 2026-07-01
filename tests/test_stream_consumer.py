@@ -158,6 +158,7 @@ async def test_restart_recovery():
     cfg.redis_url = url
     cfg.block_ms = 50
     cfg.poll_interval = 0.01
+    cfg.batch = 2  # PEL(3건) 이 batch 보다 크게 — 페이징 복구 검증
     cfg.requests_stream = "test:llm-requests"
     cfg.results_stream = "test:llm-results"
     cfg.group = "test-workers"
@@ -167,18 +168,37 @@ async def test_restart_recovery():
     try:
         await probe.delete(cfg.requests_stream, cfg.results_stream)
         await probe.xgroup_create(cfg.requests_stream, cfg.group, id="0", mkstream=True)
-        await probe.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"x": 1}, request_id="r3"))
-        # 크래시 시뮬레이션: 같은 consumer 이름으로 받기만 하고 ack 안 함 → PEL 에 남음
+        for rid in ("r3a", "r3b", "r3c"):
+            await probe.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"x": 1}, request_id=rid))
+        # 크래시 시뮬레이션: 같은 consumer 이름으로 3건 받기만 하고 ack 안 함 → PEL 에 남음
         await probe.xreadgroup(cfg.group, cfg.consumer, {cfg.requests_stream: ">"}, count=10)
-        assert (await probe.xpending(cfg.requests_stream, cfg.group))["pending"] == 1
+        assert (await probe.xpending(cfg.requests_stream, cfg.group))["pending"] == 3
 
-        # 재시작: 같은 이름으로 start → _drain_pending("0")이 재처리
-        res = await _run_until(consumer, probe, cfg, 1)
+        # 재시작: _drain_pending 이 batch(2) 를 넘겨 3건 모두 페이징 복구해야 한다
+        res = await _run_until(consumer, probe, cfg, 3)
 
-        _id, f = res[0]
-        assert f["requestId"] == "r3"
-        assert f["status"] == "SUCCEEDED"
+        assert {f["requestId"] for _id, f in res} == {"r3a", "r3b", "r3c"}
+        assert all(f["status"] == "SUCCEEDED" for _id, f in res)
         assert (await probe.xpending(cfg.requests_stream, cfg.group))["pending"] == 0
     finally:
         await probe.delete(cfg.requests_stream, cfg.results_stream)
         await probe.aclose()
+
+
+async def test_publish_failure_keeps_pending(env, monkeypatch):
+    consumer, client, cfg = env
+    # 발행(결과 스트림 xadd)이 실패하면 ack 하지 않아야 한다 — 메시지가 PEL 에 남아 복구 대상이 된다.
+    async def boom(_fields):
+        raise ConnectionError("results stream down")
+
+    monkeypatch.setattr(consumer, "_publish", boom)
+    await client.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"x": 1}, request_id="r-pub"))
+
+    await consumer.start()
+    try:
+        await asyncio.sleep(0.3)  # 처리 시도
+    finally:
+        await consumer.stop()
+
+    assert await client.xrange(cfg.results_stream) == []  # 결과 발행 안 됨
+    assert (await client.xpending(cfg.requests_stream, cfg.group))["pending"] == 1  # 미ack 로 남음

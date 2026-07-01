@@ -86,13 +86,20 @@ class StreamConsumer:
                 raise
 
     async def _drain_pending(self):
-        # 재시작 복구 — 지난번에 받아서 처리하다 만(아직 "완료" 표시 안 한) 메시지를 먼저 다시 가져온다.
-        # ("0" = 내가 받았지만 아직 못 끝낸 것들)
-        entries = await self.client.xreadgroup(
-            self.cfg.group, self.cfg.consumer,
-            {self.cfg.requests_stream: "0"}, count=self.cfg.batch,
-        ) or []
-        await self._spawn(entries)
+        # 재시작 복구 — 지난번에 받아서 처리하다 만(아직 "완료" 표시 안 한) 메시지를 다시 가져온다.
+        # 한 배치만 읽으면 PEL 이 batch 보다 많을 때 나머지가 영영 안 읽히므로, 마지막 id 를
+        # 다음 커서로 삼아 빈 결과가 나올 때까지 페이징한다.
+        cursor = "0"
+        while True:
+            entries = await self.client.xreadgroup(
+                self.cfg.group, self.cfg.consumer,
+                {self.cfg.requests_stream: cursor}, count=self.cfg.batch,
+            ) or []
+            messages = entries[0][1] if entries and entries[0][1] else []
+            if not messages:
+                break
+            await self._spawn([(self.cfg.requests_stream, messages)])
+            cursor = messages[-1][0]
 
     async def _loop(self):
         while self.running:
@@ -137,21 +144,19 @@ class StreamConsumer:
         try:
             payload = json.loads(fields.get("payload") or "{}")
             result = await asyncio.to_thread(dispatch.dispatch, job_type, payload)
-            await self._publish({
+            result_fields = {
                 "requestId": request_id,
                 "status": _SUCCEEDED,
                 "result": json.dumps(result, ensure_ascii=False),
-            })
-            log.info("succeeded requestId=%s jobType=%s elapsed=%.2fs",
-                     request_id, job_type, time.monotonic() - started)
+            }
         except Exception as e:
             code = _error_code(e)
-            await self._publish({
+            result_fields = {
                 "requestId": request_id,
                 "status": _FAILED,
                 "errorCode": code,
                 "errorMessage": str(e),
-            })
+            }
             elapsed = time.monotonic() - started
             if code == "LLM_FAILED":
                 # 예상 못한 실패만 traceback 을 남긴다.
@@ -161,10 +166,19 @@ class StreamConsumer:
                 # 계약성 실패(미지원 jobType·잘못된 payload)는 요약만.
                 log.warning("failed requestId=%s jobType=%s errorCode=%s: %s",
                             request_id, job_type, code, e)
-        finally:
-            # 결과(성공이든 실패든)를 내보낸 메시지는 다 끝난 것이므로 "완료" 표시(ack)한다.
-            # ack 해야 같은 메시지를 다시 받지 않는다.
+
+        # 결과 발행이 성공했을 때만 ack 한다. 발행이 실패하면 메시지를 PEL 에 남겨(ack 안 함)
+        # 재시작 복구가 다시 처리하게 한다 — ack 후 발행 실패로 인한 job 유실(at-least-once 약화)을 막는다.
+        try:
+            await self._publish(result_fields)
             await self.client.xack(self.cfg.requests_stream, self.cfg.group, msg_id)
+        except Exception:
+            log.exception("결과 발행/ack 실패 — 미ack 로 남겨 복구 대상 requestId=%s", request_id)
+            return
+
+        if result_fields["status"] == _SUCCEEDED:
+            log.info("succeeded requestId=%s jobType=%s elapsed=%.2fs",
+                     request_id, job_type, time.monotonic() - started)
 
     async def _publish(self, fields):
         fields["enqueuedAt"] = str(int(time.time() * 1000))
