@@ -3,8 +3,8 @@
 import pytest
 
 from worker.errors import InvalidPayload, JobFailed
-from worker.handlers import saengbu
-from worker.handlers.saengbu import (
+from worker.handlers import saenggibu
+from worker.handlers.saenggibu import (
     MissingSectionError,
     OcrError,
     UnsupportedRecordFormatError,
@@ -12,11 +12,11 @@ from worker.handlers.saengbu import (
 
 
 def test_record_extract_renames_page_range(monkeypatch):
-    monkeypatch.setattr(saengbu, "extract_source_records", lambda url: [
+    monkeypatch.setattr(saenggibu, "extract_source_records", lambda url: [
         {"section": "SETEUK", "grade": 2, "meta": {"subject": "수학"},
          "content": "본문", "source_page_range": [3, 4]},
     ])
-    out = saengbu.handle_record_extract({"pdfFileUrl": "https://x/y.pdf"})
+    out = saenggibu.handle_record_extract({"pdfFileUrl": "https://x/y.pdf"})
     rec = out["records"][0]
     assert rec["sourcePageRange"] == [3, 4]          # snake → camel
     assert "source_page_range" not in rec
@@ -32,23 +32,23 @@ def test_record_extract_renames_page_range(monkeypatch):
 def test_record_extract_error_mapping(monkeypatch, exc, code):
     def boom(url):
         raise exc("nope")
-    monkeypatch.setattr(saengbu, "extract_source_records", boom)
+    monkeypatch.setattr(saenggibu, "extract_source_records", boom)
     with pytest.raises(JobFailed) as ei:
-        saengbu.handle_record_extract({"pdfFileUrl": "u"})
+        saenggibu.handle_record_extract({"pdfFileUrl": "u"})
     assert ei.value.code == code
 
 
 def test_record_extract_missing_field():
     with pytest.raises(InvalidPayload):
-        saengbu.handle_record_extract({})  # pdfFileUrl 없음
+        saenggibu.handle_record_extract({})  # pdfFileUrl 없음
 
 
 async def test_activity_extract_source_span(monkeypatch):
     async def fake(content, section):
         return {"activities": ["가나", "다라마", "바"], "verbatim_ok": True}
-    monkeypatch.setattr(saengbu, "extract_activities", fake)
+    monkeypatch.setattr(saenggibu, "extract_activities", fake)
     content = "가나다라마바"
-    out = await saengbu.handle_activity_extract({"content": content, "section": "SETEUK"})
+    out = await saenggibu.handle_activity_extract({"content": content, "section": "SETEUK"})
     spans = [a["sourceSpan"] for a in out["activities"]]
     assert spans == [{"start": 0, "end": 2}, {"start": 2, "end": 5}, {"start": 5, "end": 6}]
     # 오프셋으로 원문 슬라이스가 정확히 복원돼야 한다
@@ -59,8 +59,8 @@ async def test_activity_extract_fallback_single(monkeypatch):
     # verbatim 저하 → [content] 1활동. SUCCESS 로 span 하나.
     async def fake(content, section):
         return {"activities": [content], "verbatim_ok": False}
-    monkeypatch.setattr(saengbu, "extract_activities", fake)
-    out = await saengbu.handle_activity_extract({"content": "전체본문", "section": "HAENGTEUK"})
+    monkeypatch.setattr(saenggibu, "extract_activities", fake)
+    out = await saenggibu.handle_activity_extract({"content": "전체본문", "section": "HAENGTEUK"})
     assert out["activities"] == [{"sourceSpan": {"start": 0, "end": 4}}]
 
 
@@ -69,8 +69,8 @@ async def test_tagging_passthrough(monkeypatch):
     async def fake(activity, target_major):
         captured.update(activity=activity, major=target_major)
         return {"tags": {"track": ["의학"]}, "prompt_version": "1.4"}
-    monkeypatch.setattr(saengbu, "extract_tags", fake)
-    out = await saengbu.handle_tagging(
+    monkeypatch.setattr(saenggibu, "extract_tags", fake)
+    out = await saenggibu.handle_tagging(
         {"activityId": "a1", "activityText": "활동내용", "targetMajor": "의예과"}
     )
     assert captured == {"activity": "활동내용", "major": "의예과"}
@@ -81,5 +81,5 @@ async def test_tagging_optional_major(monkeypatch):
     async def fake(activity, target_major):
         assert target_major is None                    # 없으면 None
         return {"tags": {}}
-    monkeypatch.setattr(saengbu, "extract_tags", fake)
-    await saengbu.handle_tagging({"activityText": "x"})
+    monkeypatch.setattr(saenggibu, "extract_tags", fake)
+    await saenggibu.handle_tagging({"activityText": "x"})

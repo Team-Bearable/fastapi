@@ -1,15 +1,15 @@
 import asyncio
 
 from worker.errors import UnsupportedJobType
-from worker.handlers import saengbu, seteuk
+from worker.handlers import saenggibu, seteuk
 
 
 _HANDLERS = {
     "SETEUK_TOPIC_RECOMMEND": seteuk.handle_topic_recommend,
     "SETEUK_GUIDELINE_GENERATE": seteuk.handle_guideline_generate,
-    "RECORD_EXTRACT": saengbu.handle_record_extract,
-    "ACTIVITY_EXTRACT": saengbu.handle_activity_extract,
-    "TAGGING": saengbu.handle_tagging,
+    "RECORD_EXTRACT": saenggibu.handle_record_extract,
+    "ACTIVITY_EXTRACT": saenggibu.handle_activity_extract,
+    "TAGGING": saenggibu.handle_tagging,
 }
 
 
