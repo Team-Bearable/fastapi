@@ -89,10 +89,10 @@ def test_guideline_empty_keywords(monkeypatch):
     assert out["referenceNews"] == []
 
 
-def test_dispatch_routes_and_rejects(monkeypatch):
+async def test_dispatch_routes_and_rejects(monkeypatch):
     monkeypatch.setattr(seteuk, "recommend_topics", lambda *a, **k: [])
-    assert dispatch.dispatch(
+    assert await dispatch.dispatch(
         "SETEUK_TOPIC_RECOMMEND", {"major": "x", "keyword": "k", "seteukDepth": "BASIC"}
     ) == {"topics": []}
     with pytest.raises(UnsupportedJobType):
-        dispatch.dispatch("NOPE", {})
+        await dispatch.dispatch("NOPE", {})
