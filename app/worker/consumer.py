@@ -6,7 +6,7 @@ import time
 import redis.asyncio as redis
 
 from worker import dispatch
-from worker.errors import InvalidPayload, UnsupportedJobType
+from worker.errors import InvalidPayload, JobFailed, UnsupportedJobType
 
 log = logging.getLogger("llm_worker")
 
@@ -154,7 +154,7 @@ class StreamConsumer:
         log.debug("payload requestId=%s %s", request_id, fields.get("payload"))
         try:
             payload = json.loads(fields.get("payload") or "{}")
-            result = await asyncio.to_thread(dispatch.dispatch, job_type, payload)
+            result = await dispatch.dispatch(job_type, payload)
             result_fields = {
                 "requestId": request_id,
                 "status": _SUCCEEDED,
@@ -197,6 +197,8 @@ class StreamConsumer:
 
 
 def _error_code(exc: Exception) -> str:
+    if isinstance(exc, JobFailed):
+        return exc.code  # 핸들러가 도메인 실패에 지정한 코드(WORD_CLOUD_FAILED 등)
     if isinstance(exc, UnsupportedJobType):
         return "UNSUPPORTED_JOB_TYPE"
     # payload 계약 위반(필수 필드 누락·미지원 값)과 JSON 파싱 실패는 입력 문제.
