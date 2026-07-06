@@ -139,7 +139,7 @@ def llm_material_organizer(major, topic, context, model):
     return result_gpt
 
 @router.post("/proto")
-async def seteukProto(payload: RequestModel):
+def seteukProto(payload: RequestModel):
     # 테스트용 기본 응답 데이터 생성
     major = payload.major
     keyword = payload.keyword
@@ -169,7 +169,7 @@ async def seteukProto(payload: RequestModel):
         
 
 @router.post("/body")
-async def seteuk_body(payload: BodyModel):
+def seteuk_body(payload: BodyModel):
     topic = payload.topic
     proto = payload.proto
     case_result = payload.case_result
@@ -194,7 +194,7 @@ async def seteuk_body(payload: BodyModel):
     return {'response': answer}
 
 @router.post("/perplexity")
-async def perplexity(payload: RequestModel):
+def perplexity(payload: RequestModel):
     
     # 테스트용 기본 응답 데이터 생성
     major = payload.major

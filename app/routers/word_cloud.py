@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 @router.post("/word-cloud")
-async def create_word_cloud(payload: WordCloudRequestModel):
+def create_word_cloud(payload: WordCloudRequestModel):
     """
     키워드 리스트로부터 워드 클라우드 이미지를 생성하는 엔드포인트
 
