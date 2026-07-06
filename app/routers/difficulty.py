@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 @router.post("/topic")
-async def topic_gen(payload: TopicModel):
+def topic_gen(payload: TopicModel):
     major = payload.major
     keyword = payload.keyword 
     seteuk_depth = payload.seteuk_depth
@@ -59,7 +59,7 @@ async def topic_gen(payload: TopicModel):
 
 
 @router.post("/guidelines")
-async def protoGenerator(payload: GraphModel):
+def protoGenerator(payload: GraphModel):
     major = payload.major
     keyword = payload.keyword 
     topic = payload.topic

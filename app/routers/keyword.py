@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 @router.post("/keyword-extraction")
-async def keyword_extraction(payload: KeywordExtractionModel):
+def keyword_extraction(payload: KeywordExtractionModel):
     """
     세특 콘텐츠에서 빈도 기반 raw_weight가 부여된 키워드를 추출하는 엔드포인트
 
