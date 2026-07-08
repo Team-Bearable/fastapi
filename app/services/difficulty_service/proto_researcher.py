@@ -1,5 +1,5 @@
 from utils.difficulty_prompt import protoResearcher_prompt
-from utils.model import anthropic, perple, perplexity_model, gpt4o
+from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
 
 
 def protoResearcher(state):
@@ -16,7 +16,7 @@ def protoResearcher(state):
         "content": (prompt.user)}
     ]
     response = perple.chat.completions.create(
-                model = perplexity_model,
+                model = PERPLEXITY_MODEL,
                 messages = perple_messages
             )
     case_result = response.choices[0].message.content

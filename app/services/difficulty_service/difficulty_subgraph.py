@@ -5,7 +5,7 @@ from typing import Annotated, Sequence
 from langchain_core.messages import (
     BaseMessage,
 )
-from utils.model import anthropic, perple, perplexity_model, gpt4o
+from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
 from services.difficulty_service.proto_researcher import protoResearcher, protoResearchDataset, protoResearchCollector
 
 

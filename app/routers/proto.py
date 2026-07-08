@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.model import anthropic, gpt4o, gpt4o_mini, perple, perplexity_model
+from utils.model import anthropic, gpt4o, gpt4o_mini, perple, PERPLEXITY_MODEL
 from utils.prompt import seteukBasicBodyTop, seteukBasicProto, perplexity_prompt, material_organizer
 from langchain_core.output_parsers import StrOutputParser
 from fastapi import APIRouter
@@ -211,7 +211,7 @@ def perplexity(payload: RequestModel):
 
     try:
         response = perple.chat.completions.create(
-            model = perplexity_model,
+            model = PERPLEXITY_MODEL,
             messages = perple_messages
         )
         case_result = response.choices[0].message.content

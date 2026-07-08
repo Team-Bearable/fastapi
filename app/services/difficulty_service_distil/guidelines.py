@@ -2,7 +2,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from utils.difficulty_prompt_distil import seteukBasicBodyTop, seteukBasicIntroduction, seteukBasicCoclusion
-from utils.model import anthropic, perple, perplexity_model, gpt4o
+from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
 import json
 
 

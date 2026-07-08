@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.model import anthropic, gpt4o, gpt4o_mini, perple, perplexity_model
+from utils.model import anthropic, gpt4o, gpt4o_mini, perple, PERPLEXITY_MODEL
 from utils.difficulty_prompt import seteukBasicTopic
 from langchain_core.output_parsers import StrOutputParser
 from fastapi import APIRouter
