@@ -1,12 +1,9 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.model import anthropic
-from utils.keyword_prompt import KeywordExtractionPrompt
+from app.utils.model import anthropic
+from app.utils.keyword_prompt import KeywordExtractionPrompt
 import json
 import re
 

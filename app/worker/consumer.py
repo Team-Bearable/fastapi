@@ -5,8 +5,8 @@ import time
 
 import redis.asyncio as redis
 
-from worker import dispatch
-from worker.errors import InvalidPayload, JobFailed, UnsupportedJobType
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload, JobFailed, UnsupportedJobType
 
 log = logging.getLogger("llm_worker")
 

@@ -7,7 +7,7 @@ stdout에 **한 줄 JSON**으로 로그를 출력한다. 로컬(ENV=local 또는
 백엔드(Spring)와 키를 통일: severity / message / logger / timestamp.
 추가 컨텍스트 필드는 `extra=`로 넘기면 그대로 JSON 최상위 필드로 전개된다.
 
-    from utils.logger import get_logger
+    from app.utils.logger import get_logger
     logger = get_logger(__name__)
     logger.info("작업 완료", extra={"request_id": rid, "job_type": job, "duration_ms": ms})
 """
@@ -85,7 +85,7 @@ def setup_logging(level: str | None = None) -> None:
 def get_logger(name: str) -> logging.Logger:
     """모듈용 로거를 반환한다. `print()` 대신 사용 권장.
 
-    from utils.logger import get_logger
+    from app.utils.logger import get_logger
     logger = get_logger(__name__)
     """
     return logging.getLogger(name)

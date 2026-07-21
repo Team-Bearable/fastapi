@@ -1,11 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from services.submission_analyze import analyze_report
+from app.services.submission_analyze import analyze_report
 
 
 class ReportAnalyzeRequest(BaseModel):

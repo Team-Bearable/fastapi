@@ -4,9 +4,9 @@ from io import BytesIO
 
 import pytest
 
-from worker import dispatch
-from worker.errors import InvalidPayload, JobFailed
-from worker.handlers import wordcloud
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload, JobFailed
+from app.worker.handlers import wordcloud
 
 
 def _patch_generate(monkeypatch, png=b"PNGDATA"):

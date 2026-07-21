@@ -2,11 +2,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Union, Optional
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from services.word_cloud import generate_word_cloud
+from app.services.word_cloud import generate_word_cloud
 
 
 class KeywordItem(BaseModel):
