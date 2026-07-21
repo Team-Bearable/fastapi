@@ -87,6 +87,9 @@ myfolio(Java) → XADD llm-requests
   `start()`는 즉시 반환하여 Redis 장애가 HTTP 기동을 막지 않는다.
 - **at-least-once**: 결과 발행(`_publish`)이 성공한 뒤에만 `xack`. 발행 실패 시 미ack로 남겨
   재시작·reclaim이 다시 처리하게 한다.
+- **DLQ 격리**(`_to_dlq`, 계약 §2): `requestId`가 없어 결과를 상관(echo)시킬 수 없는 구조적
+  처리불가 메시지는 결과 스트림 대신 `dlq_stream`(`...:llm-requests:dlq`)으로 격리 후 ack(운영 알람
+  대상). payload 역직렬화 실패·미지원 jobType 등 `requestId`로 상관 가능한 오류는 그대로 FAILED 발행.
 - **재시작 복구**(`_drain_pending`): 이 컨슈머의 PEL(처리하다 만 메시지)을 커서 페이징으로 전부 회수.
 - **멀티 인스턴스 안전**: 컨슈머 이름 기본값을 `host+pid`로 유니크하게. 죽은 인스턴스의 idle 메시지는
   `XAUTOCLAIM`(`_reclaim`)으로 회수. `reclaim_min_idle_ms`(기본 180s)는 **가장 느린 작업
