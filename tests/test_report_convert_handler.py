@@ -87,14 +87,14 @@ async def test_content_policy_maps_to_jobfailed(monkeypatch):
     assert ei.value.code == "LLM_CONTENT_POLICY"
 
 
-async def test_conversion_error_maps_to_jobfailed(monkeypatch):
+async def test_conversion_error_maps_to_invalid_input(monkeypatch):
     async def fake(**kw):
         raise ConversionError("empty")
 
     monkeypatch.setattr(report_convert, "convert_report", fake)
     with pytest.raises(JobFailed) as ei:
         await report_convert.handle_report_convert(dict(_MINIMAL))
-    assert ei.value.code == "REPORT_CONVERT_FAILED"
+    assert ei.value.code == "LLM_INVALID_INPUT"
 
 
 async def test_dispatch_routes_report_convert(monkeypatch):

@@ -111,11 +111,13 @@ myfolio(Java) → XADD llm-requests
 
 ### 오류 코드 (`consumer._error_code`)
 
-결과 스트림의 `errorCode`로 나가며 실패 성격을 구분한다:
-- `INVALID_PAYLOAD` — 필수 필드 누락·미지원 값·JSON 파싱 실패(입력 계약 위반, 재시도 무의미)
-- `UNSUPPORTED_JOB_TYPE` — 이 워커가 모르는 jobType
+결과 스트림의 `errorCode`로 나가며 실패 성격을 구분한다. 이름은 `LLM-STREAM-CONTRACT.md §6.3` 카탈로그를
+따른다(myfolio 는 errorCode 를 분기 없이 전파만 함):
+- `LLM_INVALID_INPUT` — 필수 필드 누락·미지원 값·JSON 파싱 실패, 변환 불가 입력(입력 계약 위반, 재시도 무의미)
+- `LLM_CONTENT_POLICY` — 모델이 콘텐츠 정책으로 생성 거부(refusal)
+- `UNSUPPORTED_JOB_TYPE` — 이 워커가 모르는 jobType (서술적 도메인 코드로 유지)
 - 도메인 코드 (예 `WORD_CLOUD_FAILED`) — 핸들러가 `JobFailed(code, ...)`로 지정
-- `LLM_FAILED` — 그 외 예상 못한 실패(유일하게 traceback 을 남김)
+- `LLM_INTERNAL` — 그 외 예상 못한 실패(유일하게 traceback 을 남김)
 
 ### LangGraph 서비스 변형
 

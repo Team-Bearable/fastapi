@@ -85,7 +85,7 @@ async def test_roundtrip_unknown_jobtype(env):
     assert (await client.xpending(cfg.requests_stream, cfg.group))["pending"] == 0
 
 
-async def test_invalid_depth_maps_to_invalid_payload(env):
+async def test_invalid_depth_maps_to_invalid_input(env):
     consumer, client, cfg = env
     await client.xadd(cfg.requests_stream, _envelope(
         "SETEUK_TOPIC_RECOMMEND",
@@ -97,10 +97,10 @@ async def test_invalid_depth_maps_to_invalid_payload(env):
 
     _id, f = res[0]
     assert f["status"] == "FAILED"
-    assert f["errorCode"] == "INVALID_PAYLOAD"  # LLM_FAILED 로 뭉뚱그리지 않음
+    assert f["errorCode"] == "LLM_INVALID_INPUT"  # LLM_INTERNAL 로 뭉뚱그리지 않음
 
 
-async def test_malformed_json_maps_to_invalid_payload(env):
+async def test_malformed_json_maps_to_invalid_input(env):
     consumer, client, cfg = env
     await client.xadd(cfg.requests_stream, {
         "requestId": "r-json", "jobId": "j1", "taskIndex": "0",
@@ -111,7 +111,7 @@ async def test_malformed_json_maps_to_invalid_payload(env):
 
     _id, f = res[0]
     assert f["status"] == "FAILED"
-    assert f["errorCode"] == "INVALID_PAYLOAD"
+    assert f["errorCode"] == "LLM_INVALID_INPUT"
 
 
 async def test_reconnect_on_startup_failure(env, monkeypatch):

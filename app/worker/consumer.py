@@ -13,6 +13,10 @@ log = logging.getLogger("llm_worker")
 _SUCCEEDED = "SUCCEEDED"
 _FAILED = "FAILED"
 
+# 실패 분류 코드 — LLM-STREAM-CONTRACT §6.3 카탈로그. myfolio 는 errorCode 를 분기 없이 전파만 한다.
+_INVALID_INPUT = "LLM_INVALID_INPUT"   # 입력 계약 위반(필수 필드 누락·미지원 값·JSON 파싱 실패)
+_INTERNAL = "LLM_INTERNAL"             # 예상 못한 내부 실패(fallback — traceback 로깅)
+
 _MIN_BACKOFF = 1.0
 _MAX_BACKOFF = 30.0
 
@@ -169,7 +173,7 @@ class StreamConsumer:
                 "errorMessage": str(e),
             }
             elapsed = time.monotonic() - started
-            if code == "LLM_FAILED":
+            if code == _INTERNAL:
                 # 예상 못한 실패만 traceback 을 남긴다.
                 log.exception("failed requestId=%s jobType=%s errorCode=%s elapsed=%.2fs",
                               request_id, job_type, code, elapsed)
@@ -203,5 +207,5 @@ def _error_code(exc: Exception) -> str:
         return "UNSUPPORTED_JOB_TYPE"
     # payload 계약 위반(필수 필드 누락·미지원 값)과 JSON 파싱 실패는 입력 문제.
     if isinstance(exc, (InvalidPayload, json.JSONDecodeError)):
-        return "INVALID_PAYLOAD"
-    return "LLM_FAILED"
+        return _INVALID_INPUT
+    return _INTERNAL

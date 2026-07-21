@@ -54,4 +54,5 @@ async def handle_report_convert(payload: dict) -> dict:
     except ContentPolicyError as e:
         raise JobFailed("LLM_CONTENT_POLICY", str(e))
     except ConversionError as e:
-        raise JobFailed("REPORT_CONVERT_FAILED", str(e))
+        # 변환 불가(빈 잡담 등)는 입력 문제 → 계약서 §6.3 카탈로그의 LLM_INVALID_INPUT.
+        raise JobFailed("LLM_INVALID_INPUT", str(e))
