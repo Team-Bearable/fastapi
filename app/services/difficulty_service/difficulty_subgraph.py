@@ -5,8 +5,8 @@ from typing import Annotated, Sequence
 from langchain_core.messages import (
     BaseMessage,
 )
-from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
-from services.difficulty_service.proto_researcher import protoResearcher, protoResearchDataset, protoResearchCollector
+from app.utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
+from app.services.difficulty_service.proto_researcher import protoResearcher, protoResearchDataset, protoResearchCollector
 
 
 class ProtoResearchState(TypedDict):

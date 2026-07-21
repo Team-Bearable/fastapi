@@ -7,8 +7,8 @@ Java SubmissionAnalysisAdapter 와 맞춘 입출력:
 원문 PDF 는 presignedUrl(S3) 로 워커가 직접 다운로드한다(메시지엔 본문 미포함).
 """
 
-from services.submission_analyze import analyze_report
-from worker.errors import InvalidPayload
+from app.services.submission_analyze import analyze_report
+from app.worker.errors import InvalidPayload
 
 
 def _require(payload: dict, key: str):

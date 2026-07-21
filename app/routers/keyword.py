@@ -1,11 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 from typing import Optional, Union
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from services.keyword_extraction import extract_keywords
+from app.services.keyword_extraction import extract_keywords
 
 
 class GuidelineModel(BaseModel):

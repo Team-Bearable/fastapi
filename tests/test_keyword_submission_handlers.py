@@ -2,9 +2,9 @@
 
 import pytest
 
-from worker import dispatch
-from worker.errors import InvalidPayload
-from worker.handlers import keyword, submission
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload
+from app.worker.handlers import keyword, submission
 
 
 def test_keyword_info_assembly_and_shaping(monkeypatch):

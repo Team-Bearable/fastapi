@@ -6,9 +6,9 @@
   → {introduction, body, conclusion, referenceNews[]}
 """
 
-from services.difficulty_service_distil2.seteuk_topic import recommend_topics
-from services.difficulty_service_distil2.difficulty_graph import run
-from worker.errors import InvalidPayload
+from app.services.difficulty_service_distil2.seteuk_topic import recommend_topics
+from app.services.difficulty_service_distil2.difficulty_graph import run
+from app.worker.errors import InvalidPayload
 
 # Java 가 보내는 난이도 값을 프롬프트가 쓰는 표현으로 바꾼다.
 _DEPTH = {"BASIC": "Basic", "INTERMEDIATE": "Applied", "ADVANCED": "Advanced"}

@@ -5,10 +5,10 @@ from typing import Annotated, Sequence
 from langchain_core.messages import (
     BaseMessage,
 )
-from services.difficulty_service_distil2.guidelines import seteuk_intro, seteuk_body, seteuk_conclusion
-from services.difficulty_service_distil2.difficulty_subgraph import call_proto_researcher_graph, routing_branch_node
-from services.difficulty_service_distil2.proto import protoGenerator, protoInspector, protoInspectorRouter
-from services.difficulty_service_distil2.case_researcher import perplexity
+from app.services.difficulty_service_distil2.guidelines import seteuk_intro, seteuk_body, seteuk_conclusion
+from app.services.difficulty_service_distil2.difficulty_subgraph import call_proto_researcher_graph, routing_branch_node
+from app.services.difficulty_service_distil2.proto import protoGenerator, protoInspector, protoInspectorRouter
+from app.services.difficulty_service_distil2.case_researcher import perplexity
 
 
 

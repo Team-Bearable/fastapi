@@ -5,9 +5,9 @@ from typing import Annotated, Sequence
 from langchain_core.messages import (
     BaseMessage,
 )
-from services.difficulty_service_distil.guidelines import seteuk_intro, seteuk_body, seteuk_conclusion
-from services.difficulty_service_distil.proto import protoGenerator
-from services.difficulty_service_distil.case_researcher import perplexity
+from app.services.difficulty_service_distil.guidelines import seteuk_intro, seteuk_body, seteuk_conclusion
+from app.services.difficulty_service_distil.proto import protoGenerator
+from app.services.difficulty_service_distil.case_researcher import perplexity
 
 
 

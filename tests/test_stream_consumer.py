@@ -8,10 +8,10 @@ import time
 import fakeredis
 import pytest
 
-from worker import consumer as consumer_module
-from worker import dispatch
-from worker.config import WorkerConfig
-from worker.consumer import StreamConsumer
+from app.worker import consumer as consumer_module
+from app.worker import dispatch
+from app.worker.config import WorkerConfig
+from app.worker.consumer import StreamConsumer
 
 
 @pytest.fixture(autouse=True)

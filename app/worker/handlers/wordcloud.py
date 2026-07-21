@@ -10,8 +10,8 @@ presigned URL 로 워커가 직접 PUT 하고, 저장 위치 소유는 Java 가 
 
 import requests
 
-from services.word_cloud import generate_word_cloud
-from worker.errors import InvalidPayload, JobFailed
+from app.services.word_cloud import generate_word_cloud
+from app.worker.errors import InvalidPayload, JobFailed
 
 
 def _require(payload: dict, key: str):
