@@ -104,6 +104,7 @@ myfolio(Java) → XADD llm-requests
 | `KEYWORD_EXTRACTION` | `keyword.handle_keyword_extraction` | `keyword_extraction` | `{...info, guideline{...}}` → `{keywords:[{keyword, raw_weight}]}` |
 | `SUBMISSION_ANALYSIS` | `submission.handle_submission_analysis` (async) | `submission_analyze` | `{presignedUrl, ...}` → `{summary, review}` (PDF는 presignedUrl로 다운로드) |
 | `WORD_CLOUD` | `wordcloud.handle_word_cloud` | `word_cloud` | `{keywords[], font, color, mask, uploadUrl}` → `{}` (PNG를 uploadUrl로 PUT) |
+| `REPORT_CONVERT` | `report_convert.handle_report_convert` (async) | `report_conversion` | `{reportTitle, content, section, grade, ...}` → `{activityContent, promptVersion}` (활동 리포트 원문 → 생기부 문체 1건; span 은 v1 미포함) |
 
 **난이도 매핑** (Java 값 → 프롬프트 표현, `handlers/seteuk.py`): `BASIC→Basic`,
 `INTERMEDIATE→Applied`, `ADVANCED→Advanced`. (레거시 라우터의 `기초/응용/심화` 매핑과 별개.)
