@@ -1,14 +1,17 @@
-"""세특 플러스 생성 (LangGraph: topic → research → 병렬 refine).
+"""세특 플러스 생성 (LangGraph: topic → research → proto → 병렬 refine).
 
 흐름:
-    plus_topic(Claude)  →  plus_research(perplexity)  →  refine_intro/body/conclusion(gpt4o, 병렬)
-    - topic/tip 생성        실제 사례+출처 URL 검색        각 섹션을 주제·사례로 상세 작성
+    plus_topic(Claude) → plus_research(perplexity) → plus_proto(Claude) → refine_intro/body/conclusion(gpt4o, 병렬)
+    - topic/tip 생성      실제 사례+출처 URL 검색       서·본·결 설계도        축·배치도·뼈대 받아 상세 작성
+                                                     (축/배치도/뼈대)
 
 - topic/tip 도 AI 가 생성한다(베이직은 topic 을 입력받음).
 - 리서치는 베이직의 검증된 perplexity 노드를 재사용(실제 사례 + citation URL). 결과는 서론/본론/결론
   '본문 안'에 자연스럽게 녹인다(별도 필드로 나가지 않음).
-- proto(초안) 단계는 두지 않는다: 품질은 refine 프롬프트 + few-shot 예시에서 나오고, proto 는
-  시간만 늘려 실익이 없었다.
+- proto(설계도) 단계: 글을 쓰지 않고 서·본·결을 관통하는 '탐구 축 + 사례 배치도 + 섹션 뼈대'만
+  잡는다. 리서치 '뒤'에 둬서 proto 가 사례를 아는 채로 섹션별 역할을 배분하게 한다(같은 사례가
+  여러 섹션에 겹쳐 소개되는 중복을 원천 차단). 뒤의 refine 세 노드는 병렬로 돌지만 이 설계도를
+  공유하므로 하나의 논리로 이어진다. proto 실패해도 설계도 없이 진행한다(생성 자체는 막지 않음).
 
 결과 계약: {topic, tip, introduction, body, conclusion}
 """
@@ -25,7 +28,7 @@ from langchain_core.output_parsers import StrOutputParser
 from app.utils.model import anthropic, gpt4o
 from app.utils.logger import get_logger
 from app.utils.seteuk_plus_prompt import (
-    seteukPlusTopic,
+    seteukPlusTopic, seteukPlusProto,
     seteukPlusIntroduction, seteukPlusBody, seteukPlusConclusion,
 )
 # 리서치(관련 사례 + 출처 URL)는 베이직의 검증된 perplexity 노드를 그대로 재사용한다.
@@ -46,6 +49,12 @@ class PlusState(TypedDict, total=False):
     topic: str
     tip: str
     case_result: str     # 리서치 결과: <<<관련 사례>>>/<<<응용 탐구>>> + 출처 URL (없으면 "")
+    # proto(설계도): 서·본·결을 관통하는 축·배치도 + 섹션별 뼈대 (없으면 "")
+    axis: str
+    placement: str
+    intro_skeleton: str
+    body_skeleton: str
+    conclusion_skeleton: str
     introduction: str
     body: str
     conclusion: str
@@ -83,6 +92,31 @@ def _parse_topic(raw: str) -> dict:
     return {"topic": first.strip(), "tip": rest.strip()}
 
 
+# proto 설계도의 5개 블록 → state 키. (프롬프트 출력 구분자 ↔ state 필드 매핑)
+_PROTO_BLOCKS = [
+    ("탐구축", "axis"),
+    ("배치도", "placement"),
+    ("서론뼈대", "intro_skeleton"),
+    ("본론뼈대", "body_skeleton"),
+    ("결론뼈대", "conclusion_skeleton"),
+]
+
+
+def _parse_proto(raw: str) -> dict:
+    """proto 응답에서 '<<<블록명>>>' 구분자로 축/배치도/뼈대를 뽑는다.
+
+    각 블록은 자기 헤더 다음부터 '다음 <<<' 직전까지. 누락된 블록은 ""(빈 값)로 둬서
+    refine 이 '(설계도 없음)'으로 대체해 진행하게 한다(형식이 흔들려도 생성은 막지 않음).
+    """
+    text = re.sub(r"```[a-zA-Z]*", "", raw).strip()  # 코드블록 펜스 제거
+    out = {key: "" for _, key in _PROTO_BLOCKS}
+    for header, key in _PROTO_BLOCKS:
+        m = re.search(rf"<<<{header}>>>(.*?)(?=<<<|$)", text, re.DOTALL)
+        if m:
+            out[key] = m.group(1).strip()
+    return out
+
+
 # ── LangGraph 노드 ──────────────────────────────────────────────────────────
 def plus_topic(state: PlusState) -> dict:
     """① topic + tip 생성 (창의성 필요 → anthropic). seteuk_depth 는 영문 난이도."""
@@ -112,56 +146,84 @@ def plus_research(state: PlusState) -> dict:
         return {"case_result": ""}
 
 
-def _refine(state: PlusState, prompt_obj) -> str:
-    """주제(+리서치 사례)로 각 섹션 최종본 생성 (gpt4o).
+def plus_proto(state: PlusState) -> dict:
+    """③ 서·본·결 설계도 생성 (축·배치도·뼈대, anthropic). 리서치 '뒤'라 사례를 아는 채로
+    섹션별 역할을 배분해 중복을 차단한다. 실패해도 설계도 없이 진행한다."""
+    try:
+        raw = _chain(
+            seteukPlusProto(), anthropic,
+            ["major", "subject", "seteuk_depth", "topic", "reference"],
+        ).invoke({
+            "major": state["major"], "subject": state["subject"],
+            "seteuk_depth": state["seteuk_depth"], "topic": state["topic"],
+            "reference": state.get("case_result", "") or "(참고 자료 없음)",
+        })
+        proto = _parse_proto(raw)
+        log.info("plus_proto 완료 axis=%.40s", proto["axis"])
+        return proto
+    except Exception as e:
+        log.warning("plus_proto 실패 — 설계도 없이 진행: %s", e)
+        return {}
 
-    reference(리서치로 찾은 실제 사례+URL)를 함께 넘겨, 프롬프트가 이를 섹션 본문 흐름에
-    자연스럽게 녹여 인용하게 한다(서론/본론/결론 밖으로 새지 않음).
+
+def _refine(state: PlusState, prompt_obj, skeleton_key: str) -> str:
+    """주제(+설계도+리서치 사례)로 각 섹션 최종본 생성 (gpt4o).
+
+    proto 설계도의 axis(관통 축)·placement(사례 배치도)는 세 섹션이 '공유'하고, skeleton 은
+    이 섹션 몫만 넘긴다 — 병렬로 돌아도 하나의 논리로 이어지고 사례 역할이 겹치지 않는다.
+    reference(리서치로 찾은 실제 사례+URL)는 섹션 본문 흐름에 자연스럽게 녹여 인용하게 한다.
     """
     return _chain(
         prompt_obj, gpt4o,
-        ["major", "subject", "seteuk_depth", "topic", "reference"],
+        ["major", "subject", "seteuk_depth", "topic",
+         "axis", "placement", "skeleton", "reference"],
     ).invoke({
         "major": state["major"], "subject": state["subject"],
         "seteuk_depth": state["seteuk_depth"], "topic": state["topic"],
+        "axis": state.get("axis", "") or "(설계도 없음)",
+        "placement": state.get("placement", "") or "(설계도 없음)",
+        "skeleton": state.get(skeleton_key, "") or "(설계도 없음)",
         "reference": state.get("case_result", "") or "(참고 자료 없음)",
     })
 
 
 def refine_intro(state: PlusState) -> dict:
-    result = _refine(state, seteukPlusIntroduction())
+    result = _refine(state, seteukPlusIntroduction(), "intro_skeleton")
     log.info("refine_intro 완료 len=%d", len(result))
     return {"introduction": result}
 
 
 def refine_body(state: PlusState) -> dict:
-    result = _refine(state, seteukPlusBody())
+    result = _refine(state, seteukPlusBody(), "body_skeleton")
     log.info("refine_body 완료 len=%d", len(result))
     return {"body": result}
 
 
 def refine_conclusion(state: PlusState) -> dict:
-    result = _refine(state, seteukPlusConclusion())
+    result = _refine(state, seteukPlusConclusion(), "conclusion_skeleton")
     log.info("refine_conclusion 완료 len=%d", len(result))
     return {"conclusion": result}
 
 
 def _build_graph():
-    """topic → research → (서론/본론/결론 병렬 refine) → END."""
+    """topic → research → proto → (서론/본론/결론 병렬 refine) → END."""
     graph = StateGraph(PlusState)
     graph.add_node("plus_topic", plus_topic)
     graph.add_node("plus_research", plus_research)
+    graph.add_node("plus_proto", plus_proto)
     graph.add_node("refine_intro", refine_intro)
     graph.add_node("refine_body", refine_body)
     graph.add_node("refine_conclusion", refine_conclusion)
 
     graph.set_entry_point("plus_topic")
-    # 사례를 refine 이 본문에 녹여야 하므로 research 가 refine 보다 먼저 끝나야 한다 → 순차.
+    # 사례를 refine 이 본문에 녹여야 하므로 research 가 먼저. proto 는 사례를 아는 채로 섹션
+    # 역할을 배분해야 하므로 research '뒤', refine '앞' → 순차(topic → research → proto).
     graph.add_edge("plus_topic", "plus_research")
-    # research 이후 세 섹션을 fan-out → 같은 superstep 에서 병렬 실행됨
-    graph.add_edge("plus_research", "refine_intro")
-    graph.add_edge("plus_research", "refine_body")
-    graph.add_edge("plus_research", "refine_conclusion")
+    graph.add_edge("plus_research", "plus_proto")
+    # proto 이후 세 섹션을 fan-out → 같은 superstep 에서 병렬 실행(설계도 공유)
+    graph.add_edge("plus_proto", "refine_intro")
+    graph.add_edge("plus_proto", "refine_body")
+    graph.add_edge("plus_proto", "refine_conclusion")
     graph.add_edge("refine_intro", END)
     graph.add_edge("refine_body", END)
     graph.add_edge("refine_conclusion", END)
