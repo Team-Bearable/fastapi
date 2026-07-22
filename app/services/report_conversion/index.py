@@ -8,11 +8,11 @@ import json
 from typing import Optional
 
 from app.utils.model import ANTHROPIC_MODEL, anthropic_async
-from app.utils.report_convert_prompt import SYSTEM, USER
+from app.utils.report_convert_prompt import USER, build_system
 from app.services.report_conversion.errors import ContentPolicyError, ConversionError
 
 # 관측·회귀 추적용 프롬프트 버전 (결과에 실려 나간다).
-PROMPT_VERSION = "convert-v1"
+PROMPT_VERSION = "convert-v2"
 
 _OUTPUT_SCHEMA = {
     "format": {
@@ -64,7 +64,8 @@ async def convert_report(
     message = await anthropic_async.messages.create(
         model=ANTHROPIC_MODEL,
         max_tokens=4096,
-        system=SYSTEM,
+        # section/subSection 별 문체·서사 지침 + few-shot 을 조립 (convert-v2).
+        system=build_system(section, sub_section),
         output_config=_OUTPUT_SCHEMA,
         messages=[
             {
