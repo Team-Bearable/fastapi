@@ -5,13 +5,17 @@ import time
 
 import redis.asyncio as redis
 
-from worker import dispatch
-from worker.errors import InvalidPayload, JobFailed, UnsupportedJobType
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload, JobFailed, UnsupportedJobType
 
 log = logging.getLogger("llm_worker")
 
 _SUCCEEDED = "SUCCEEDED"
 _FAILED = "FAILED"
+
+# 실패 분류 코드 — LLM-STREAM-CONTRACT §6.3 카탈로그. myfolio 는 errorCode 를 분기 없이 전파만 한다.
+_INVALID_INPUT = "LLM_INVALID_INPUT"   # 입력 계약 위반(필수 필드 누락·미지원 값·JSON 파싱 실패)
+_INTERNAL = "LLM_INTERNAL"             # 예상 못한 내부 실패(fallback — traceback 로깅)
 
 _MIN_BACKOFF = 1.0
 _MAX_BACKOFF = 30.0
@@ -148,8 +152,20 @@ class StreamConsumer:
     async def _handle(self, msg_id, fields):
         request_id = fields.get("requestId")
         job_type = fields.get("jobType")
+        # jobId·taskIndex 는 LLM 모듈이 쓰지 않고 추적·상관용으로만 로깅한다(계약 §3).
+        job_id = fields.get("jobId")
+        task_index = fields.get("taskIndex")
         started = time.monotonic()
-        log.info("consumed msgId=%s requestId=%s jobType=%s", msg_id, request_id, job_type)
+
+        # requestId 가 없으면 ③에 echo 할 상관키가 없어 FAILED 를 발행해도 myfolio 가 Task 에 못 붙인다.
+        # 이런 구조적 처리불가 메시지는 결과 스트림 대신 DLQ 로 격리하고 ack 한다(계약 §2, 운영 알람 대상).
+        # (payload 역직렬화 실패·미지원 jobType 등은 requestId 로 상관 가능하므로 그대로 FAILED 발행한다.)
+        if not request_id:
+            await self._to_dlq(msg_id, fields, "MISSING_REQUEST_ID")
+            return
+
+        log.info("consumed msgId=%s requestId=%s jobId=%s taskIndex=%s jobType=%s",
+                 msg_id, request_id, job_id, task_index, job_type)
         # payload 에는 학생 데이터가 들어가고 길 수 있어 평소엔 안 남기고 DEBUG 일 때만 남긴다.
         log.debug("payload requestId=%s %s", request_id, fields.get("payload"))
         try:
@@ -169,7 +185,7 @@ class StreamConsumer:
                 "errorMessage": str(e),
             }
             elapsed = time.monotonic() - started
-            if code == "LLM_FAILED":
+            if code == _INTERNAL:
                 # 예상 못한 실패만 traceback 을 남긴다.
                 log.exception("failed requestId=%s jobType=%s errorCode=%s elapsed=%.2fs",
                               request_id, job_type, code, elapsed)
@@ -195,6 +211,21 @@ class StreamConsumer:
         fields["enqueuedAt"] = str(int(time.time() * 1000))
         await self.client.xadd(self.cfg.results_stream, fields)
 
+    async def _to_dlq(self, msg_id, fields, reason):
+        # 처리불가 메시지를 DLQ 로 격리 후 ack — 원본 스트림이 막히지 않게(계약 §2). 원본 필드를
+        # 그대로 싣고 사유·격리시각을 덧붙인다. DLQ 격리(xadd)가 성공해야만 ack 한다 —
+        # 실패하면 미ack 로 남겨(PEL) reclaim 이 다시 처리하게 한다.
+        entry = dict(fields)
+        entry["dlqReason"] = reason
+        entry["dlqAt"] = str(int(time.time() * 1000))
+        try:
+            await self.client.xadd(self.cfg.dlq_stream, entry)
+            await self.client.xack(self.cfg.requests_stream, self.cfg.group, msg_id)
+        except Exception:
+            log.exception("DLQ 격리/ack 실패 — 미ack 로 남겨 복구 대상 msgId=%s reason=%s", msg_id, reason)
+            return
+        log.warning("DLQ 격리 msgId=%s reason=%s (운영 알람 대상)", msg_id, reason)
+
 
 def _error_code(exc: Exception) -> str:
     if isinstance(exc, JobFailed):
@@ -203,5 +234,5 @@ def _error_code(exc: Exception) -> str:
         return "UNSUPPORTED_JOB_TYPE"
     # payload 계약 위반(필수 필드 누락·미지원 값)과 JSON 파싱 실패는 입력 문제.
     if isinstance(exc, (InvalidPayload, json.JSONDecodeError)):
-        return "INVALID_PAYLOAD"
-    return "LLM_FAILED"
+        return _INVALID_INPUT
+    return _INTERNAL

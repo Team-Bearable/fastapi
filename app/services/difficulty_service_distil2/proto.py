@@ -3,9 +3,9 @@ import ast
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from utils.difficulty_prompt_distil2 import seteukBasicProto, protoInspectorPrompt
-from utils.model import anthropic, gpt4o
-from utils.utils import json_format
+from app.utils.difficulty_prompt_distil2 import seteukBasicProto, protoInspectorPrompt
+from app.utils.model import anthropic, gpt4o
+from app.utils.utils import json_format
 
 
 def protoGenerator(state):

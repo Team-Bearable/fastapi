@@ -4,9 +4,9 @@ from io import BytesIO
 
 import pytest
 
-from worker import dispatch
-from worker.errors import InvalidPayload, JobFailed
-from worker.handlers import wordcloud
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload, JobFailed
+from app.worker.handlers import wordcloud
 
 
 def _patch_generate(monkeypatch, png=b"PNGDATA"):
@@ -77,7 +77,7 @@ def test_upload_failure_wrapped_as_word_cloud_failed(monkeypatch):
             "keywords": [{"keyword": "k", "raw_weight": 1.0}],
             "font": 0, "color": 0, "mask": 0, "uploadUrl": "u",
         })
-    assert ei.value.code == "WORD_CLOUD_FAILED"        # LLM_FAILED fallback 아님
+    assert ei.value.code == "WORD_CLOUD_FAILED"        # LLM_INTERNAL fallback 아님
 
 
 def test_generate_failure_wrapped_as_word_cloud_failed(monkeypatch):

@@ -2,16 +2,13 @@ import logging
 from fastapi import APIRouter, HTTPException
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.model import anthropic, gpt4o, gpt4o_mini, perple, PERPLEXITY_MODEL
-from utils.difficulty_prompt import seteukBasicTopic
+from app.utils.model import anthropic, gpt4o, gpt4o_mini, perple, PERPLEXITY_MODEL
+from app.utils.difficulty_prompt import seteukBasicTopic
 from langchain_core.output_parsers import StrOutputParser
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from services.difficulty_service.difficulty_graph import run
+from app.services.difficulty_service.difficulty_graph import run
 
 class TopicModel(BaseModel):
     major: str

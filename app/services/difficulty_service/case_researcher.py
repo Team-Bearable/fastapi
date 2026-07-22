@@ -2,9 +2,9 @@
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from utils.difficulty_prompt import  material_organizer, perplexity_prompt
-from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
-from utils.utils import perple_process_result
+from app.utils.difficulty_prompt import  material_organizer, perplexity_prompt
+from app.utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
+from app.utils.utils import perple_process_result
 
 
 def llm_material_organizer(major, topic, context, model, state):

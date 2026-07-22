@@ -2,9 +2,9 @@
 
 import pytest
 
-from worker import dispatch
-from worker.errors import InvalidPayload, UnsupportedJobType
-from worker.handlers import seteuk
+from app.worker import dispatch
+from app.worker.errors import InvalidPayload, UnsupportedJobType
+from app.worker.handlers import seteuk
 
 
 def test_topic_split_and_keyword(monkeypatch):

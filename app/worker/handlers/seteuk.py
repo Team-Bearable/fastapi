@@ -4,11 +4,14 @@
 - SETEUK_TOPIC_RECOMMEND: {major, keyword, seteukDepth} → {topics:[{topic,tip,keyword}]}
 - SETEUK_GUIDELINE_GENERATE: {major, keywords[], topic, seteukDepth}
   → {introduction, body, conclusion, referenceNews[]}
+- SETEUK_PLUS_GENERATE: {department, major, subject, plusKeyword, seteukDepth}
+  → {topic, tip, introduction, body, conclusion}   (topic/tip 도 AI 생성, 사례 없음)
 """
 
-from services.difficulty_service_distil2.seteuk_topic import recommend_topics
-from services.difficulty_service_distil2.difficulty_graph import run
-from worker.errors import InvalidPayload
+from app.services.difficulty_service_distil2.seteuk_topic import recommend_topics
+from app.services.difficulty_service_distil2.difficulty_graph import run
+from app.services.difficulty_service_distil2.seteuk_plus import run_plus
+from app.worker.errors import InvalidPayload
 
 # Java 가 보내는 난이도 값을 프롬프트가 쓰는 표현으로 바꾼다.
 _DEPTH = {"BASIC": "Basic", "INTERMEDIATE": "Applied", "ADVANCED": "Advanced"}
@@ -60,3 +63,14 @@ def handle_guideline_generate(payload: dict) -> dict:
         "conclusion": result.get("conclusion"),
         "referenceNews": result.get("reference_news") or [],
     }
+
+
+def handle_plus_generate(payload: dict) -> dict:
+    # 분야/전공/과목 스냅샷 + 유저 자유 키워드(plusKeyword). 스냅샷은 없을 수 있어 관대하게.
+    return run_plus(
+        payload.get("department") or "",
+        _require(payload, "major"),
+        payload.get("subject") or "",
+        _require(payload, "plusKeyword"),
+        _depth(_require(payload, "seteukDepth")),
+    )

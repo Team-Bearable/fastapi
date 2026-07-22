@@ -5,8 +5,8 @@ Java WordCloudAiAdapter 와 맞춘 입출력:
   → {keywords:[{keyword, raw_weight}]}
 """
 
-from services.keyword_extraction import extract_keywords
-from worker.errors import InvalidPayload
+from app.services.keyword_extraction import extract_keywords
+from app.worker.errors import InvalidPayload
 
 
 def _require(payload: dict, key: str):

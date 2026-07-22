@@ -4,8 +4,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from utils.model import anthropic
-from utils.difficulty_prompt_distil2 import seteukBasicTopic
+from app.utils.model import anthropic
+from app.utils.difficulty_prompt_distil2 import seteukBasicTopic
 
 
 def recommend_topics(major: str, keyword: str, seteuk_depth: str) -> list[str]:

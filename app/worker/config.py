@@ -14,6 +14,8 @@ class WorkerConfig:
         self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         self.requests_stream = os.getenv("LLM_REQUESTS_STREAM", "myfolio:stream:llm-requests")
         self.results_stream = os.getenv("LLM_RESULTS_STREAM", "myfolio:stream:llm-results")
+        # 처리불가(구조적) 메시지 격리용 DLQ. 원본 요청 스트림 + ":dlq" (계약 §2). 운영 알람 대상.
+        self.dlq_stream = os.getenv("LLM_REQUESTS_DLQ", "myfolio:stream:llm-requests:dlq")
         # 요청 스트림을 읽을 컨슈머 그룹. myfolio 는 넣기만 하니 이 그룹은 워커가 만든다.
         self.group = os.getenv("LLM_REQUESTS_GROUP", "llm-workers")
         # 컨슈머 이름은 인스턴스마다 달라야 한다 — 같은 이름을 여러 인스턴스가 쓰면 한 인스턴스가

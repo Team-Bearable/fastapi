@@ -2,8 +2,8 @@ import httpx
 import base64
 import json
 from typing import Optional
-from utils.analyze_prompt import SYSTEM, USER
-from utils.model import ANTHROPIC_MODEL, anthropic_async
+from app.utils.analyze_prompt import SYSTEM, USER
+from app.utils.model import ANTHROPIC_MODEL, anthropic_async
 
 
 async def download_pdf(presigned_url: str) -> bytes:

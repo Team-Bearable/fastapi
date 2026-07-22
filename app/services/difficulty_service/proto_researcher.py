@@ -1,5 +1,5 @@
-from utils.difficulty_prompt import protoResearcher_prompt
-from utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
+from app.utils.difficulty_prompt import protoResearcher_prompt
+from app.utils.model import anthropic, perple, PERPLEXITY_MODEL, gpt4o
 
 
 def protoResearcher(state):
