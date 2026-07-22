@@ -10,6 +10,7 @@ _HANDLERS = {
     "KEYWORD_EXTRACTION": keyword.handle_keyword_extraction,
     "SUBMISSION_ANALYSIS": submission.handle_submission_analysis,
     "WORD_CLOUD": wordcloud.handle_word_cloud,
+    "SETEUK_PLUS_GENERATE": seteuk.handle_plus_generate,
     "REPORT_CONVERT": report_convert.handle_report_convert,
 }
 
