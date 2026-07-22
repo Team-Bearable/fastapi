@@ -85,7 +85,7 @@ async def test_roundtrip_unknown_jobtype(env):
     assert (await client.xpending(cfg.requests_stream, cfg.group))["pending"] == 0
 
 
-async def test_invalid_depth_maps_to_invalid_payload(env):
+async def test_invalid_depth_maps_to_invalid_input(env):
     consumer, client, cfg = env
     await client.xadd(cfg.requests_stream, _envelope(
         "SETEUK_TOPIC_RECOMMEND",
@@ -97,10 +97,10 @@ async def test_invalid_depth_maps_to_invalid_payload(env):
 
     _id, f = res[0]
     assert f["status"] == "FAILED"
-    assert f["errorCode"] == "INVALID_PAYLOAD"  # LLM_FAILED 로 뭉뚱그리지 않음
+    assert f["errorCode"] == "LLM_INVALID_INPUT"  # LLM_INTERNAL 로 뭉뚱그리지 않음
 
 
-async def test_malformed_json_maps_to_invalid_payload(env):
+async def test_malformed_json_maps_to_invalid_input(env):
     consumer, client, cfg = env
     await client.xadd(cfg.requests_stream, {
         "requestId": "r-json", "jobId": "j1", "taskIndex": "0",
@@ -111,7 +111,45 @@ async def test_malformed_json_maps_to_invalid_payload(env):
 
     _id, f = res[0]
     assert f["status"] == "FAILED"
-    assert f["errorCode"] == "INVALID_PAYLOAD"
+    assert f["errorCode"] == "LLM_INVALID_INPUT"
+
+
+async def test_missing_request_id_goes_to_dlq(env):
+    consumer, client, cfg = env
+    # requestId 없는 구조적 처리불가 메시지 — 상관 불가라 결과 대신 DLQ 로 격리해야 한다.
+    await client.xadd(cfg.requests_stream, {
+        "jobId": "j1", "taskIndex": "0", "jobType": "TEST_ECHO",
+        "payload": json.dumps({"x": 1}), "enqueuedAt": "0",
+    })
+
+    await consumer.start()
+    try:
+        dlq = []
+        for _ in range(200):
+            dlq = await client.xrange(cfg.dlq_stream)
+            if dlq:
+                break
+            await asyncio.sleep(0.02)
+    finally:
+        await consumer.stop()
+
+    assert len(dlq) == 1
+    _id, f = dlq[0]
+    assert f["dlqReason"] == "MISSING_REQUEST_ID"
+    assert f["jobType"] == "TEST_ECHO"          # 원본 필드 보존
+    assert "dlqAt" in f
+    assert await client.xrange(cfg.results_stream) == []       # 결과 스트림엔 미발행
+    assert (await client.xpending(cfg.requests_stream, cfg.group))["pending"] == 0  # 격리 후 ack
+
+
+async def test_consumed_log_includes_job_id_and_task_index(env, caplog):
+    import logging
+    consumer, client, cfg = env
+    await client.xadd(cfg.requests_stream, _envelope("TEST_ECHO", {"a": 1}))
+    with caplog.at_level(logging.INFO, logger="llm_worker"):
+        await _run_until(consumer, client, cfg, 1)
+    assert "jobId=j1" in caplog.text          # 계약 §3 추적용 필드 로깅
+    assert "taskIndex=0" in caplog.text
 
 
 async def test_reconnect_on_startup_failure(env, monkeypatch):

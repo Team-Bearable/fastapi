@@ -87,6 +87,9 @@ myfolio(Java) → XADD llm-requests
   `start()`는 즉시 반환하여 Redis 장애가 HTTP 기동을 막지 않는다.
 - **at-least-once**: 결과 발행(`_publish`)이 성공한 뒤에만 `xack`. 발행 실패 시 미ack로 남겨
   재시작·reclaim이 다시 처리하게 한다.
+- **DLQ 격리**(`_to_dlq`, 계약 §2): `requestId`가 없어 결과를 상관(echo)시킬 수 없는 구조적
+  처리불가 메시지는 결과 스트림 대신 `dlq_stream`(`...:llm-requests:dlq`)으로 격리 후 ack(운영 알람
+  대상). payload 역직렬화 실패·미지원 jobType 등 `requestId`로 상관 가능한 오류는 그대로 FAILED 발행.
 - **재시작 복구**(`_drain_pending`): 이 컨슈머의 PEL(처리하다 만 메시지)을 커서 페이징으로 전부 회수.
 - **멀티 인스턴스 안전**: 컨슈머 이름 기본값을 `host+pid`로 유니크하게. 죽은 인스턴스의 idle 메시지는
   `XAUTOCLAIM`(`_reclaim`)으로 회수. `reclaim_min_idle_ms`(기본 180s)는 **가장 느린 작업
@@ -104,17 +107,20 @@ myfolio(Java) → XADD llm-requests
 | `KEYWORD_EXTRACTION` | `keyword.handle_keyword_extraction` | `keyword_extraction` | `{...info, guideline{...}}` → `{keywords:[{keyword, raw_weight}]}` |
 | `SUBMISSION_ANALYSIS` | `submission.handle_submission_analysis` (async) | `submission_analyze` | `{presignedUrl, ...}` → `{summary, review}` (PDF는 presignedUrl로 다운로드) |
 | `WORD_CLOUD` | `wordcloud.handle_word_cloud` | `word_cloud` | `{keywords[], font, color, mask, uploadUrl}` → `{}` (PNG를 uploadUrl로 PUT) |
+| `REPORT_CONVERT` | `report_convert.handle_report_convert` (async) | `report_conversion` | `{reportTitle, content, section, grade, ...}` → `{activityContent, promptVersion}` (활동 리포트 원문 → 생기부 문체 1건; span 은 v1 미포함) |
 
 **난이도 매핑** (Java 값 → 프롬프트 표현, `handlers/seteuk.py`): `BASIC→Basic`,
 `INTERMEDIATE→Applied`, `ADVANCED→Advanced`. (레거시 라우터의 `기초/응용/심화` 매핑과 별개.)
 
 ### 오류 코드 (`consumer._error_code`)
 
-결과 스트림의 `errorCode`로 나가며 실패 성격을 구분한다:
-- `INVALID_PAYLOAD` — 필수 필드 누락·미지원 값·JSON 파싱 실패(입력 계약 위반, 재시도 무의미)
-- `UNSUPPORTED_JOB_TYPE` — 이 워커가 모르는 jobType
+결과 스트림의 `errorCode`로 나가며 실패 성격을 구분한다. 이름은 `LLM-STREAM-CONTRACT.md §6.3` 카탈로그를
+따른다(myfolio 는 errorCode 를 분기 없이 전파만 함):
+- `LLM_INVALID_INPUT` — 필수 필드 누락·미지원 값·JSON 파싱 실패, 변환 불가 입력(입력 계약 위반, 재시도 무의미)
+- `LLM_CONTENT_POLICY` — 모델이 콘텐츠 정책으로 생성 거부(refusal)
+- `UNSUPPORTED_JOB_TYPE` — 이 워커가 모르는 jobType (서술적 도메인 코드로 유지)
 - 도메인 코드 (예 `WORD_CLOUD_FAILED`) — 핸들러가 `JobFailed(code, ...)`로 지정
-- `LLM_FAILED` — 그 외 예상 못한 실패(유일하게 traceback 을 남김)
+- `LLM_INTERNAL` — 그 외 예상 못한 실패(유일하게 traceback 을 남김)
 
 ### LangGraph 서비스 변형
 

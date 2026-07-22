@@ -1,7 +1,7 @@
 import asyncio
 
 from app.worker.errors import UnsupportedJobType
-from app.worker.handlers import keyword, seteuk, submission, wordcloud
+from app.worker.handlers import keyword, report_convert, seteuk, submission, wordcloud
 
 
 _HANDLERS = {
@@ -11,6 +11,7 @@ _HANDLERS = {
     "SUBMISSION_ANALYSIS": submission.handle_submission_analysis,
     "WORD_CLOUD": wordcloud.handle_word_cloud,
     "SETEUK_PLUS_GENERATE": seteuk.handle_plus_generate,
+    "REPORT_CONVERT": report_convert.handle_report_convert,
 }
 
 
